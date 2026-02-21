@@ -1,0 +1,235 @@
+{% extends "layout.swig" %}
+
+{% set page = "calendar" %}
+
+{% block page_header %}
+	<link rel="stylesheet" href="/cssys/assets/js/select2/select2.css">
+	<link rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css">
+	<link rel="stylesheet" href="/cssys/assets/js/multiselect/css/multi-select.css">
+	<style>
+	</style>
+{% endblock %}
+
+{% block page_body %}
+	<div class="page-title">
+		<div class="title-env">
+			<h1 class="title">캘린더 관리</h1>
+			<p class="description">추가하고 싶은 캘린더 정보를 입력 또는 수정하고 싶은 캘린더를 선택하시기 바랍니다.</p>
+		</div>
+		<div class="breadcrumb-env">
+			<ol class="breadcrumb bc-1">
+				<li>
+					<a href="main"><i class="fa-home"></i>메인</a>
+				</li>
+				<li class="active">
+					<strong>캘린더 관리</strong>
+				</li>
+			</ol>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<form role="form" class="form-horizontal" id="register">
+						<div class="form-group">
+							<label class="col-sm-2 control-label">캘린더 선택</label>
+							<div class="col-sm-10">
+								<select class="form-control" name="id">
+									<option></option>
+									{% for share in shares %}
+										<option value="{{share.id}}">
+											{{share.title}}
+											{% if share.Calendar.UserId != session().user.id %}
+												({{share.Calendar.User.name}}님 공유)
+											{% endif %}
+										</option>									
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+						<div class="form-group-separator"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="ids">캘린더 제목</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" name="title" placeholder="ex) 나의 일정" autocomplete="off">
+							</div>
+						</div>
+						<div class="form-group-separator"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">일정 기본 배경색</label>	
+							<div class="col-sm-10">	
+								<div class="form-block">
+									<input type="radio" name="bgcolor" value="#2c2e2f" class="cbr cbr-primary">
+									<input type="radio" name="bgcolor" value="#7c38bc" class="cbr cbr-purple">
+									<input type="radio" name="bgcolor" value="#0e62c7" class="cbr cbr-blue">
+									<input type="radio" name="bgcolor" value="#40bbea" class="cbr cbr-info">
+									<input type="radio" name="bgcolor" value="#00b19d" class="cbr cbr-turquoise">
+									<input type="radio" name="bgcolor" value="#68b828" class="cbr cbr-secondary" checked>
+									<input type="radio" name="bgcolor" value="#8dc63f" class="cbr cbr-success">
+									<input type="radio" name="bgcolor" value="#cc3f44" class="cbr cbr-danger">
+									<input type="radio" name="bgcolor" value="#d5080f" class="cbr cbr-red">
+									<input type="radio" name="bgcolor" value="#ff6264" class="cbr cbr-pink">
+									<input type="radio" name="bgcolor" value="#f7aa47" class="cbr cbr-orange">
+									<input type="radio" name="bgcolor" value="#ffba00" class="cbr cbr-warning">
+									<input type="radio" name="bgcolor" value="#fcd036" class="cbr cbr-yellow">
+									<input type="radio" name="bgcolor" value="#c8c8c8" class="cbr cbr-gray">
+									<input type="radio" name="bgcolor" value="#ffffff" class="cbr">
+								</div>	
+							</div>
+						</div>
+						<div class="form-group-separator"></div>						
+						<div class="form-group">
+							<label class="col-sm-2 control-label">일정 기본 글자색</label>
+							<div class="col-sm-10">	
+								<div class="form-block">
+									<input type="radio" name="fontcolor" value="#2c2e2f" class="cbr cbr-primary">
+									<input type="radio" name="fontcolor" value="#7c38bc" class="cbr cbr-purple">
+									<input type="radio" name="fontcolor" value="#0e62c7" class="cbr cbr-blue">
+									<input type="radio" name="fontcolor" value="#40bbea" class="cbr cbr-info">
+									<input type="radio" name="fontcolor" value="#00b19d" class="cbr cbr-turquoise">
+									<input type="radio" name="fontcolor" value="#68b828" class="cbr cbr-secondary">
+									<input type="radio" name="fontcolor" value="#8dc63f" class="cbr cbr-success">
+									<input type="radio" name="fontcolor" value="#cc3f44" class="cbr cbr-danger">
+									<input type="radio" name="fontcolor" value="#d5080f" class="cbr cbr-red">
+									<input type="radio" name="fontcolor" value="#ff6264" class="cbr cbr-pink">
+									<input type="radio" name="fontcolor" value="#f7aa47" class="cbr cbr-orange">
+									<input type="radio" name="fontcolor" value="#ffba00" class="cbr cbr-warning">
+									<input type="radio" name="fontcolor" value="#fcd036" class="cbr cbr-yellow">
+									<input type="radio" name="fontcolor" value="#c8c8c8" class="cbr cbr-gray">
+									<input type="radio" name="fontcolor" value="#ffffff" class="cbr" checked>
+								</div>	
+							</div>
+						</div>
+						<div class="form-group-separator"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">캘린더 설명</label>
+							<div class="col-sm-10">
+								<textarea class="form-control" name="comment" rows="5" placeholder="캘린더에 대한 설명을 적어주세요."></textarea>
+							</div>
+						</div>
+						<div class="form-group-separator"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">사용자 공유</label>
+							<div class="col-sm-10">
+								<select class="form-control" name="users" multiple>
+									<option></option>
+									<optgroup label="유저 리스트">
+									{% for user in users %}
+										{% if user.id != session().user.id %}
+										<option value="{{user.id}}">{{user.name}}</option>
+										{% endif %}
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+						<div class="form-group-separator"></div>
+						<div class="form-group">
+							<div class="col-sm-9">
+								<h5 class="text-muted" id="deleteComment" style="display:none;">※ 사용자 삭제는 [사용자 관리] - [사용자 현황] 페이지에서 사용자 클릭 후 팝업창에서 할 수 있습니다.</h5>
+							</div>
+							<div class="col-sm-3">
+								<button type="submit" class="btn btn-success" style="float:right; margin-left: 20px;">등록하기</button>
+								<button class="btn btn-danger" style="float:right;display:none;" id="delete_btn">삭제하기</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block page_footer %}
+	<script src="/cssys/assets/js/select2/select2.min.js"></script>
+	<script src="/cssys/assets/js/multiselect/js/jquery.multi-select.js"></script>
+	<script type="text/javascript">
+		jQuery(document).ready(function($) {
+
+			$("select[name='id']").select2({
+				placeholder: '캘린더를 선택해 주세요. (캘린더 등록시 미선택)'
+			}).on("select2-selecting", function(e) {
+				$.post( "calendar/ajax/get_calendar",{id:e.val}, function( data ) {
+					$('.form-group').removeClass('has-warning');
+					$('input[name="id"]').val(data.share.id);
+					$('input[name="title"]').val(data.share.title);
+					$('input[name="bgcolor"]:input[value="'+data.share.bgcolor+'"]').click();
+					$('input[name="fontcolor"]:input[value="'+data.share.fontcolor+'"]').click();
+					$('textarea[name="comment"]').val(data.share.Calendar.comment);
+					$('select[name="users"]').val(data.users).trigger("change");
+					$('button[type="submit"]').text('수정하기');
+					if(data.share.Calendar.UserId!={{session().user.id}}) $('textarea[name="comment"],select[name="users"]').attr("disabled","disabled");
+					else {
+						$('textarea[name="comment"],select[name="users"]').attr("disabled",false);
+						$('#delete_btn').show();
+					}
+				});
+			});
+
+			$("select[name='users']").select2({
+				placeholder: '캘린더를 공유할 사용자를 추가해 주세요.',
+				allowClear: true
+			}).on('select2-open', function(){
+				$(this).data('select2').results.addClass('overflow-hidden').perfectScrollbar();
+			});
+			
+			$('form#register').submit(function(e) {
+		        e.preventDefault();
+		        if ($('input[name="title"]').val() != "") {
+		        	$('button[type="submit"]').attr("disabled", "disabled");
+		            show_loading_bar(70);
+					$.post("calendar",{
+						id : $('select[name="id"]').select2('val'),
+						title : $('input[name="title"]').val(),
+						bgcolor : $('input[name="bgcolor"]:checked').val(),
+						fontcolor : $('input[name="fontcolor"]:checked').val(),
+						comment : $('textarea[name="comment"]').val(),
+						users : $('select[name="users"]').select2('val')
+					}, function(data) {
+						show_loading_bar({
+	                        delay: 1,
+	                        pct: 100,
+	                        finish: function() {
+	                        	if(!data.result){
+	                        		alert(data.text);	
+	                        		window.location.href = './calendar';
+	                        	} 
+	                        	else window.location.href = './main';
+	                        }
+	                    });
+					});
+		        }
+		        else {
+		        	$('input[name="title"]').focus().parent().parent().addClass('has-warning');
+		        }
+		    });
+
+			$("#delete_btn").click(function(e){
+				if(confirm("캘린더 및 공유 정보, 일정이 모두 삭제됩니다. 정말 삭제하시겠습니까?")){
+					$.post("calendar/ajax/del_calendar",{
+						id : $('select[name="id"]').select2('val')
+					}, function(data) {
+						show_loading_bar({
+	                        delay: 0.5,
+	                        pct: 100,
+	                        finish: function() {
+	                        	window.location.href = './main';
+	                        }
+	                    });
+					}).error(function() {
+						show_loading_bar({
+		                    delay: 0.5,
+		                    pct: 100,
+		                    finish: function() {
+		                    	alert("알 수 없는 오류가 발생하였습니다.");
+		                    }
+		                });						
+					});
+				}
+			});
+			
+			// bottom 높이 문제 처리
+			$(window).trigger('resize');
+		});
+	</script>
+{% endblock %}

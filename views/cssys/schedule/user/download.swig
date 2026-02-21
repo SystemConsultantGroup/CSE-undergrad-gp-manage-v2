@@ -1,0 +1,90 @@
+{% extends "../../../layout.swig" %}
+
+{% block site_header %}
+
+	{# cssys 사이트 전체 적용 css #}
+	<link rel="stylesheet" href="/cssys/assets/css/fonts/linecons/css/linecons.css">
+	<link rel="stylesheet" href="/cssys/assets/css/fonts/fontawesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="/cssys/assets/css/fonts/elusive/css/elusive.css">
+	<link rel="stylesheet" href="/cssys/assets/css/bootstrap.css">
+	<link rel="stylesheet" href="/cssys/assets/css/xenon-core.css">
+	<link rel="stylesheet" href="/cssys/assets/css/xenon-forms.css">
+	<link rel="stylesheet" href="/cssys/assets/css/xenon-components.css">
+	<link rel="stylesheet" href="/cssys/assets/css/xenon-skins.css">
+	<link rel="stylesheet" href="/cssys/assets/css/custom.css">
+	<script src="/cssys/assets/js/jquery-1.11.1.min.js"></script>
+	<link rel="stylesheet" href="/cssys/assets/js/fullcalendar/fullcalendar.min.css">
+
+{% endblock %}
+
+{% block site_body %}
+	<div class="page-container">
+		<div class="main-content">
+			<div class="row calendar-env">
+				<div class="col-sm-12 calendar-right">
+					<div class="calendar-main">
+						<div id="calendar"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block site_footer %}
+	<script src="/cssys/assets/js/bootstrap.min.js"></script>
+	<script src="/cssys/assets/js/TweenMax.min.js"></script>
+	<script src="/cssys/assets/js/resizeable.js"></script>
+	<script src="/cssys/assets/js/joinable.js"></script>
+	<script src="/cssys/assets/js/xenon-api.js"></script>
+	<script src="/cssys/assets/js/xenon-toggles.js"></script>
+	<script src="/cssys/assets/js/toastr/toastr.min.js"></script>
+	<script src="/cssys/assets/js/xenon-custom.js"></script>
+
+	<script src="/cssys/assets/js/jquery-ui/jquery-ui.min.js"></script>
+	<script src="/cssys/assets/js/moment.min.js"></script>
+	<script src="/cssys/assets/js/fullcalendar/fullcalendar.min.js"></script>
+
+	<script type="text/javascript">
+		var calendar;
+		jQuery(document).ready(function($) {
+			calendar = $('#calendar').fullCalendar({
+				header: {
+					left: 'title',
+					center: '',
+					right: 'prev,next'
+				},
+				buttonIcons: {
+					prev: 'prev fa-angle-left',
+					next: 'next fa-angle-right',
+				},
+				eventLimit: true,				
+				events: {{json|safe}}
+			});
+
+			calendar.fullCalendar('gotoDate','{{date}}');
+		});
+	</script>
+
+
+	<script>
+		WebFontConfig = {
+		    google: {
+		        families: ['Arimo:400,700,400italic:latin']
+		    },
+		    custom: {
+				families: ['Nanum Gothic'],
+				urls: ['http://fonts.googleapis.com/earlyaccess/nanumgothic.css']
+			}
+		};
+		(function() {
+		    var wf = document.createElement('script');
+		    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+		        '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+		    wf.type = 'text/javascript';
+		    wf.async = 'true';
+		    var s = document.getElementsByTagName('script')[0];
+		    s.parentNode.insertBefore(wf, s);
+		})();
+	</script>
+{% endblock %}

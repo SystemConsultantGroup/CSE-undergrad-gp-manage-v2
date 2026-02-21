@@ -1,0 +1,194 @@
+{% extends "layout.swig" %}
+
+{% set page = "student" %}
+
+{% block page_header %}
+	<link rel="stylesheet" href="/cssys/assets/js/datatables/dataTables.bootstrap.css">
+	<link rel="stylesheet" href="/cssys/assets/js/select2/select2.css">
+	<link rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css">
+	<style>
+		#dataList tbody td {
+			cursor: pointer;
+		}
+		/* datatable highlight */
+		.dataTable tbody tr.odd {
+			background-color: #f9f9f9;
+		}
+		.dataTable tbody tr.even:hover, .dataTable tbody tr.even td.highlighted {
+			background-color: #ECFFB3;
+		}
+
+		.dataTable tbody tr.odd:hover, .dataTable tbody tr.odd td.highlighted {
+			background-color: #E6FF99;
+		}
+
+		.dataTable tr.even:hover {
+			background-color: #ECFFB3;
+		}
+
+		.dataTable tr.even:hover td.sorting_1 {
+			background-color: #DDFF75;
+		}
+
+		.dataTable tr.even:hover td.sorting_2 {
+			background-color: #E7FF9E;
+		}
+
+		.dataTable tr.even:hover td.sorting_3 {
+			background-color: #E2FF89;
+		}
+
+		.dataTable tr.odd:hover {
+			background-color: #E6FF99;
+		}
+
+		.dataTable tr.odd:hover td.sorting_1 {
+			background-color: #D6FF5C;
+		}
+
+		.dataTable tr.odd:hover td.sorting_2 {
+			background-color: #E0FF84;
+		}
+
+		.dataTable tr.odd:hover td.sorting_3 {
+			background-color: #DBFF70;
+		}
+		.dataTable th,.dataTable td {
+			text-align:center;
+			text-overflow: ellipsis;
+		}
+		.dataTable td {
+			vertical-align: middle;
+		}
+		._filter {
+			width: 100% !important;
+		}
+		.dataTable tbody td:nth-child(5),
+		.dataTable tbody td:nth-child(6),
+		.dataTable tbody td:nth-child(7),
+		.dataTable tbody td:nth-child(8),
+		.dataTable tbody td:nth-child(9) {
+			padding-left: 0px;
+			padding-right: 0px;
+		}
+		.progress .progress-bar.progress-bar-gray {
+			background-color: #979898;
+		}
+	</style>
+{% endblock %}
+
+{% block page_body %}
+	<div class="page-title">
+		<div class="title-env">
+			<h1 class="title">배정 학생 목록 (Assigned Students)</h1>
+			<p class="description">교수님에게 배정된 학생 목록을 확인하실 수 있습니다.</p>
+		</div>
+		<div class="breadcrumb-env">
+			<ol class="breadcrumb bc-1">
+				<li>
+					<a href="main"><i class="fa-home"></i>메인</a>
+				</li>
+				<li class="active">
+					<strong>배정 학생 목록</strong>
+				</li>
+			</ol>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<table id="dataList" class="table table-striped table-bordered" cellspacing="0" width="100%">
+						<thead>
+							<tr>
+								<th>이름 (Name)</th>
+								<th>전공 (Major)</th>
+								<th>전화번호 (Phone)</th>
+								<th>이메일 (Email)</th>
+								<th>재학 여부</th>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div> 
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block page_footer %}
+	<script src="/cssys/assets/js/datatables/js/jquery.dataTables.min.js"></script>
+	<script src="/cssys/assets/js/datatables/dataTables.bootstrap.js"></script>
+	<script src="/cssys/assets/js/datatables/tabletools/dataTables.tableTools.min.js"></script>
+	<script src="/cssys/assets/js/datatables/fnReloadAjax.js"></script>
+	<script type="text/javascript">
+		function prof_login(){
+			if(confirm("관리자 페이지가 로그아웃 되고 현재 {{user.name}} 교수의 {{user.ids}} 계정으로 로그인 됩니다. 로그인 하시겠습니까?")){
+				document.location="../prof_login/{{user.id}}";
+			}
+		}
+		var dataList;
+		jQuery(document).ready(function($) {
+
+			dataList = $("#dataList").dataTable({
+		        "oLanguage": {
+		            "sSearch": "검색 (Search) :",
+		            "sLengthMenu": "_MENU_ 명씩 보기",
+		            "sEmptyTable": "레코드가 없습니다.",
+		            "sInfo": "총 _TOTAL_명 중 _START_에서 _END_번째",
+		            "sInfoEmpty": "총 0명",
+		            "sZeroRecords": "일치하는 학생이 없습니다.",
+		            "sInfoFiltered": "(총 _MAX_명 중)",
+		            "oPaginate": {
+		                "sFirst": "처음",
+		                "sLast": "마지막",
+		                "sNext": "Next",
+		                "sPrevious": "Prev"
+		            }
+		        },
+		        aLengthMenu: [
+		            [10, 25, 50, 100, -1],
+		            [10, 25, 50, 100, "전체"]
+		        ],
+		        // "sPaginationType": "full_numbers",
+		        "bSort": false,
+		        "bProcessing": true,
+		        "sAjaxSource": '/cssys/guidance/prof/stu_assigned',
+		        "sServerMethod": "GET",
+		        "aoColumns": [{
+		            "mData": "User.name"
+		        }, {
+		            "mData": "User.major",
+					"mRender": function(data, type, full) {
+		            	if(data>=0 && data<6) return ['전자전기공학부 (EEE)', '컴퓨터공학과 (CS)', '반도체시스템공학과 (SSE)', '소프트웨어학과 (Software)', '정보통신대학 (ICC)', '인터랙션사이언스학과(IS)'][data];
+		                else return "(미지정)";
+		            }
+		        }, {
+		            "mData": "User.phone"
+		        },{
+		            "mData": "User.email"
+		        }, {
+		            "mData": "status",
+		            "mRender": function(data, type, full) {
+		            	if(data===0) return "재학 (Attending)";
+		            	else if(data===1) return "휴학 (Absence)";
+		            	else if(data===2) return "수료 (Completion)";
+		            	else if(data===3) return "졸업 (Graduate)";
+		            	else return "(오류)";
+		            }
+		        }],
+		        /*"fnRowCallback": function(nRow, aData, iDisplayIndex) {
+		        	$(nRow).unbind("click").click(function() {
+		        		document.location = "../student/"+aData.id;
+		            });
+		        },*/
+		        "fnDrawCallback": function(oSettings) {
+		            $(window).trigger('xenon.resized');
+		        }
+		    });
+		});
+	</script>
+{% endblock %}

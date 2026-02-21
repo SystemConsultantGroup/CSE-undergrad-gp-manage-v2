@@ -1,0 +1,44 @@
+.sidebar-menu {
+	width: 270px;
+}
+.sidebar-menu .logo-env {
+	padding-left: 20px !important;
+	padding-right: 20px !important;
+	padding-top: 20px !important;
+	padding-bottom: 20px !important;
+}
+.user-info-navbar .user-info-menu>li>a, .user-info-navbar .user-info-menu>li>div {
+	padding: 20px 20px;
+	border-bottom: 0px;
+}
+.user-info-navbar .user-info-menu>li>a .badge {
+	top: 10px;
+}
+#navLeftPrinter, #navRightPrinter {
+	padding-top: 22px;
+	display: inline-block;
+}
+#navLeftPrinter .label, #navRightPrinter .label {
+	top: -1px;
+}
+
+.dropdown-menu.printPushLog {
+	right: -1px;
+	left: auto;
+}
+
+.sidebar-menu .main-menu {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+footer.main-footer .go-up {
+    margin-bottom: 0px;
+}
+
+body, .tooltip, .popover {
+    font-family: Arimo, "Helvetica Neue", Helvetica, Arial, 'Nanum Gothic', sans-serif;
+}
+
+.panel .panel-body, .panel .panel-body #text p {
+	color: #4C4C4C;
+}

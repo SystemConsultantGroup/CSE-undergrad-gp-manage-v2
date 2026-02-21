@@ -1,0 +1,237 @@
+{% extends "layout.swig" %}
+
+{% set page = "main" %}
+
+{% block page_header %}
+	<link rel="stylesheet" href="/cssys/assets/js/fullcalendar/fullcalendar.min.css">
+	<style>
+		.xe-widget.xe-progress-counter.xe-progress-counter-blue {
+		    background-color: #0e62c7
+		}
+		.xe-widget.xe-progress-counter.xe-progress-counter-blue .xe-background {
+		    color: #fff
+		}
+		.xe-widget.xe-progress-counter.xe-progress-counter-blue .xe-upper {
+		    background-color: transparent
+		}
+		.xe-widget.xe-progress-counter .except {
+			font-size: 100px;
+			left: -12%;
+			top: 25%;
+		}
+		.xe-widget.xe-progress-counter .except2 {
+			font-size: 100px;
+			left: -18%;
+			top: 25%;
+		}
+		.calendar-env {
+			margin-bottom: 20px;
+		}
+		.calendar-main {
+			padding: 0px !important;
+		}
+		legend {
+			border-bottom: 0px solid !important;
+		}
+		.panel {
+			padding-top: 0px !important;
+		}
+		.card-font {
+			font-size: 15px !important; 
+		}
+		strong{
+			font-size: 15px !important;
+		}
+		td {
+			pointer-events: none !important;
+		}
+	</style>
+{% endblock %}
+
+{% block page_body %}
+	<div class="page-title">
+		<div class="title-env">
+			<h1 class="title">소프트웨어대학 생활지도교수 배정 시스템에 접속하신걸 환영합니다!</h1>
+			<p class="description">시스템을 통해 생활지도 학생을 관리하실 수 있습니다.</p>
+		</div>
+		<div class="breadcrumb-env">  
+			<ol class="breadcrumb bc-1">
+				<li class="active">
+					<a href="main"><i class="fa-home"></i>메인</a>
+				</li>
+			</ol>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-sm-6">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<fieldset>
+					<legend> 최근 로그인 기록 </legend>
+					<table id="noticeList" class="table table-hover" style="width:100% !important;">
+						<thead>
+							<tr>
+								<th>아이피</th>
+								<th>날짜 및 시간</th>
+								<th>접속 성공 여부</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for log in loginLog %}
+									<tr {% if !log.success %}class="false_log"{% endif %}>
+										<td width="150">{{log.ip}}</td>
+										<td>{{log.time_}}</td>
+										<td>
+										{%if log.password == null %}
+										로그인 성공
+										{% else %}
+										로그인 실패 ( 접근 패스워드 : {{log.password}})
+										{% endif %}
+										</td>
+									</tr>	
+						{% endfor %}
+						</tbody>
+					</table>
+					</fieldset>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-6">
+			<div class="row">
+				<div class="col-sm-6">
+						<div class="xe-widget xe-progress-counter xe-progress-counter-pink " data-count=".num" data-from="0" data-to="0" data-duration="2">
+							<div class="xe-background">
+								<i class="el-group"></i>
+							</div>
+							<div class="xe-upper">
+								<div class="xe-icon">
+									<i class="el-group"></i>
+								</div>
+								<div class="xe-label">
+									<span class="card-font">오늘 신청 학생 수</span>
+									<span class="card-font"> {{Object.keys(today_applying_students).length}} 명 </span>
+								</div>
+							</div>
+							<div class="xe-progress">
+								<span class="xe-progress-fill"></span>
+							</div>
+							<div class="xe-lower">
+								<span class="card-font">전체 신청 학생 수 : {{Object.keys(applying_students).length}}명</span>
+							</div>
+						</div>
+				</div>
+				<div class="col-sm-6">
+						<div class="xe-widget xe-progress-counter xe-progress-counter-warning" data-count=".num" data-from="0" data-to="0" data-duration="2">
+							<div class="xe-background except2">
+								<i class="el-pencil"></i>
+							</div>
+							<div class="xe-upper">
+								<div class="xe-icon">
+									<i class="el-pencil"></i>
+								</div>
+								<div class="xe-label">
+									<span class="card-font">오늘 배정완료 학생 수</span>
+									<span class="card-font"> {{Object.keys(today_completed_students).length}} 명 </span>
+								</div>
+							</div>
+							<div class="xe-progress">
+								<span class="xe-progress-fill"></span>
+							</div>
+							<div class="xe-lower">
+								<span class="card-font">전체 배정완료 학생 수 : {{Object.keys(completed_students).length}}명</span>
+							</div>
+						</div>
+				</div>
+				<div class="col-sm-12">
+						<div class="xe-widget xe-progress-counter xe-progress-counter-secondary">
+							<div class="xe-background except">
+								<i class="fa-files-o"></i>
+							</div>
+							<div class="xe-progress">
+								<span class="xe-progress-fill"></span>
+							</div>
+
+							<div class="xe-lower">
+								<strong>총 학생 수 :  {{Object.keys(students).length}}명</strong>
+								<strong>총 교수 수 : {{Object.keys(profs).length}}명</strong>
+							</div>
+						</div>
+				</div>
+				<div class="col-sm-12">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<fieldset>
+						<legend> 최근 배정 로그 </legend>
+						<table id="noticeList" class="table table-hover" style="width:100% !important;">
+						<thead>
+							<tr>
+								<th>배정내역</th>
+								<th>날짜 및 시간</th>
+							</tr>
+						</thead>
+							<tbody>
+							{% for log in recentLog %}
+							{% if log.state %}
+							<tr>
+								<td>{{log.Prof.User.name}} 교수님 - {{log.Student.User.name}} 학생 배정</td>
+								<td>{{log.createdAt | date('Y-m-d H:i:s', -540) }}</td>
+							</tr>
+							{% else %}
+							<tr style="color:red;">
+								<td>{{log.Prof.User.name}} 교수님 - {{log.Student.User.name}} 학생 배정 취소</td>
+								<td>{{log.createdAt | date('Y-m-d H:i:s', -540)}}</td>
+							</tr>
+							{% endif %}
+							{% endfor %}
+							</tbody>
+						</table>
+						</fieldset>
+					</div>
+				</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!--<div class="row">
+
+	</div>-->
+{% endblock %}
+
+{% block page_footer %}
+	<script src="/cssys/assets/js/moment.min.js"></script>
+	<script src="/cssys/assets/js/fullcalendar/fullcalendar.min.js"></script>
+	<script src="/cssys/assets/js/xenon-widgets.js"></script>
+	<script type="text/javascript">
+		console.log(this.students);
+		console.log(this.profs);
+		jQ uery(document).ready(function($) {
+			calendar = $('#calendar').fullCalendar({
+				header: {
+					left: 'title',
+					center: '',
+					right: 'prev,next'
+				},
+				buttonIcons: {
+					prev: 'prev fa-angle-left',
+					next: 'next fa-angle-right',
+				},
+				selectable: true,
+				eventLimit: true,
+				events: [
+					{% for system in systems %}
+						{% if system.id!=1 && system.id!=13 && system.id!=7 && system.id!=8 %}
+							{
+								title: "{{system.phase}}",
+								start: "{{system.start_}}",
+								end: "{{system.end_}}"
+							},
+						{% endif %}
+					{% endfor %}
+			    ]
+			});
+			$(window).trigger('xenon.resized');
+		});
+	</script>
+{% endblock %}
