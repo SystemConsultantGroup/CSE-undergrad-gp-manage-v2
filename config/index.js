@@ -67,7 +67,6 @@ function parseNumber(value) {
 function applyEnv(baseConfig) {
   const config = JSON.parse(JSON.stringify(baseConfig || {}));
   config.db = config.db || {};
-  config.icc = config.icc || {};
   config.cssys = config.cssys || {};
   config.session = config.session || {};
 
@@ -106,9 +105,6 @@ function applyEnv(baseConfig) {
     config.db.dialectOptions.connectTimeout = dbConnectTimeout;
   }
 
-  const iccUploadPath = pick("ICC_UPLOAD_PATH");
-  if (iccUploadPath !== undefined) config.icc.upload_path = iccUploadPath;
-
   const cssysUploadPath = pick("CSSYS_UPLOAD_PATH");
   if (cssysUploadPath !== undefined) config.cssys.upload_path = cssysUploadPath;
 
@@ -142,9 +138,6 @@ const baseConfig = {
     timezone: "+09:00",
     logging: true,
     port: ""
-  },
-  icc: {
-    upload_path: ""
   },
   session: {
     secret: ""
