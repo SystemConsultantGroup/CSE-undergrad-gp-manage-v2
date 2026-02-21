@@ -85,5 +85,25 @@ $ export NODE_ENV=production && pm2 start bin/www --name "cse-undergrad-gp-manag
 
 ---
 
+#### 환경변수
+```
+SESSION_SECRET=replace-with-a-long-random-string
+PORT=8091
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=
+DB_PASSWORD=
+DB_DATABASE=
+DB_DIALECT=mysql
+DB_TIMEZONE=+09:00
+DB_LOGGING=true
+DB_CONNECT_TIMEOUT=60000
+ICC_UPLOAD_PATH=
+CSSYS_UPLOAD_PATH=
+CSSYS_PERMIT_STUDENT_COUNT=8
+CSSYS_PERMIT_STUDENT_COUNT_SEMICON=7
+
+```
+
 Copyright ⓒ 2020 성균관대학교 시스템컨설턴트그룹 All Right Reserved
 
