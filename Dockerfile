@@ -2,6 +2,10 @@ FROM node:10.24.1-stretch
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bzip2 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 RUN npm install --production
 

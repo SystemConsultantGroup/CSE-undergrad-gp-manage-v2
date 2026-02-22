@@ -109,7 +109,7 @@ app.use(function(req, res, next) { // 이거 cssys 로그인 된 모든페이지
 // 컨트롤러 라우팅 셋업
 app.use('/', require('./routes/index'));
 // cs
-app.use('/cs', require('./routes/cs/index'));
+//app.use('/cs', require('./routes/cs/index'));
 // cssys main
 app.use('/cssys', require('./routes/cssys/index'));
 // cssys work (졸업작품시스템)

@@ -123,9 +123,6 @@ function applyEnv(baseConfig) {
   const minioEndPoint = pick("MINIO_ENDPOINT");
   if (minioEndPoint !== undefined) config.minio.endPoint = minioEndPoint;
 
-  const minioPort = parseNumber(pick("MINIO_PORT"));
-  if (minioPort !== undefined) config.minio.port = minioPort;
-
   const minioUseSSL = parseBoolean(pick("MINIO_USE_SSL"));
   if (minioUseSSL !== undefined) config.minio.useSSL = minioUseSSL;
 
@@ -137,9 +134,6 @@ function applyEnv(baseConfig) {
 
   const minioBucket = pick("MINIO_BUCKET");
   if (minioBucket !== undefined) config.minio.bucket = minioBucket;
-
-  const minioRegion = pick("MINIO_REGION");
-  if (minioRegion !== undefined) config.minio.region = minioRegion;
 
   return config;
 }
@@ -171,12 +165,10 @@ const baseConfig = {
   },
   minio: {
     endPoint: "",
-    port: 9000,
     useSSL: false,
     accessKey: "",
     secretKey: "",
-    bucket: "",
-    region: "us-east-1"
+    bucket: ""
   }
 };
 
