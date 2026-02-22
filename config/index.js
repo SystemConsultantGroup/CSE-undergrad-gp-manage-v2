@@ -69,6 +69,7 @@ function applyEnv(baseConfig) {
   config.db = config.db || {};
   config.cssys = config.cssys || {};
   config.session = config.session || {};
+  config.minio = config.minio || {};
 
   const pick = (key) => process.env[key];
 
@@ -119,6 +120,27 @@ function applyEnv(baseConfig) {
   const sessionSecret = pick("SESSION_SECRET");
   if (sessionSecret !== undefined) config.session.secret = sessionSecret;
 
+  const minioEndPoint = pick("MINIO_ENDPOINT");
+  if (minioEndPoint !== undefined) config.minio.endPoint = minioEndPoint;
+
+  const minioPort = parseNumber(pick("MINIO_PORT"));
+  if (minioPort !== undefined) config.minio.port = minioPort;
+
+  const minioUseSSL = parseBoolean(pick("MINIO_USE_SSL"));
+  if (minioUseSSL !== undefined) config.minio.useSSL = minioUseSSL;
+
+  const minioAccessKey = pick("MINIO_ACCESS_KEY");
+  if (minioAccessKey !== undefined) config.minio.accessKey = minioAccessKey;
+
+  const minioSecretKey = pick("MINIO_SECRET_KEY");
+  if (minioSecretKey !== undefined) config.minio.secretKey = minioSecretKey;
+
+  const minioBucket = pick("MINIO_BUCKET");
+  if (minioBucket !== undefined) config.minio.bucket = minioBucket;
+
+  const minioRegion = pick("MINIO_REGION");
+  if (minioRegion !== undefined) config.minio.region = minioRegion;
+
   return config;
 }
 
@@ -146,6 +168,15 @@ const baseConfig = {
     upload_path: "",
     permit_student_count: 8,
     permit_student_count_semicon: 7
+  },
+  minio: {
+    endPoint: "",
+    port: 9000,
+    useSSL: false,
+    accessKey: "",
+    secretKey: "",
+    bucket: "",
+    region: "us-east-1"
   }
 };
 

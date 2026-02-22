@@ -1,9 +1,7 @@
-var config = require('../../config');
 var models = require('../../models/cssys_work');
 var express = require('express');
 var router = express.Router();
-var fs = require('fs');
-var path = require('path');
+var storage = require('../../lib/minio_storage');
 
 router.get('*', function(req, res, next) {
     req.session.system = "work";
@@ -28,7 +26,9 @@ router.all('/ajax/file/download/:title/:file_name', function(req, res, next) {
         if (studentfile !== null) {
             studentfile.last_access = new Date();
             studentfile.save().then(function(studentfile) {
-                res.download(studentfile.path,studentfile.name);
+                storage.sendStoredFileToResponse(studentfile.path, studentfile.name, studentfile.type, res).catch(function(err) {
+                    next(err);
+                });
             });
         } else next();
     });

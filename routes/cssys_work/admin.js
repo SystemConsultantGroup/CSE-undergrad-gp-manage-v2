@@ -1,4 +1,3 @@
-var config = require('../../config');
 var models = require('../../models/cssys_work');
 var models_ = require('../../models/cssys');
 const models_g = require('../../models/cssys_guidance');
@@ -10,8 +9,8 @@ var sha256 = require('sha256');
 var moment = require('moment');
 var xlsx = require('node-xlsx');
 var schedule = require('node-schedule');
-var mkdirp = require('mkdirp');
 var path = require('path');
+var storage = require('../../lib/minio_storage');
 
 // 어드민 로그인 인증 예외 처리
 router.all('*', function(req, res, next) {
@@ -773,10 +772,11 @@ router.post('/student/:id', function(req, res, next) {
                         });
                     });
                 } else {
-                    try {
-                        fs.unlinkSync(user.Student[req.body.delete].path);
-                    } catch (err) {}
-                    user.Student[req.body.delete].destroy().then(function() {
+                    storage.removeStoredFile(user.Student[req.body.delete].path).catch(function() {
+                        return null;
+                    }).then(function() {
+                        return user.Student[req.body.delete].destroy();
+                    }).then(function() {
                         res.send({
                             result: true
                         });
@@ -790,43 +790,37 @@ router.post('/student/:id', function(req, res, next) {
                         text: '파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                     });
                 } else {
-                    var file_name = Date.now() + "-" + file.name;
-                    var file_path = path.join(config.cssys.upload_path, 'work/' + req.body.upload, file_name);
-                    mkdirp(path.join(config.cssys.upload_path, 'work/' + req.body.upload), function(err) {
-                        if (!err) {
-                            fs.rename(file.path, file_path, function(err) {
-                                if (!err) {
-                                    req.body.name = file.originalname;
-                                    req.body.path = file_path;
-                                    req.body.type = file.mimetype;
-                                    req.body.size = file.size;
-                                    user.createStudentFile(req.body).then(function(studentfile) {
-                                        if (user.Student[req.body.upload]) {
-                                            try {
-                                                fs.unlinkSync(user.Student[req.body.upload].path);
-                                            } catch (err) {}
-                                            user.Student[req.body.upload].destroy().then(function() {
-                                                user.Student["set" + req.body.upload.charAt(0).toUpperCase() + req.body.upload.slice(1)](studentfile).then(function() {
-                                                    res.send({
-                                                        result: true,
-                                                    });
-                                                });
-                                            });
-                                        } else {
-                                            user.Student["set" + req.body.upload.charAt(0).toUpperCase() + req.body.upload.slice(1)](studentfile).then(function() {
-                                                res.send({
-                                                    result: true,
-                                                });
-                                            });
-                                        }
-                                    });
-                                } else {
-                                    next(err);
-                                }
+                    var objectKey = storage.makeObjectKey(['work', req.body.upload], file.originalname || file.name);
+                    storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
+                        req.body.name = file.originalname;
+                        req.body.path = objectKey;
+                        req.body.type = file.mimetype;
+                        req.body.size = file.size;
+                        return user.createStudentFile(req.body);
+                    }).then(function(studentfile) {
+                        if (user.Student[req.body.upload]) {
+                            storage.removeStoredFile(user.Student[req.body.upload].path).catch(function() {
+                                return null;
+                            }).then(function() {
+                                return user.Student[req.body.upload].destroy();
+                            }).then(function() {
+                                return user.Student["set" + req.body.upload.charAt(0).toUpperCase() + req.body.upload.slice(1)](studentfile);
+                            }).then(function() {
+                                res.send({
+                                    result: true,
+                                });
+                            }).catch(function(err) {
+                                next(err);
                             });
                         } else {
-                            next(err);
+                            user.Student["set" + req.body.upload.charAt(0).toUpperCase() + req.body.upload.slice(1)](studentfile).then(function() {
+                                res.send({
+                                    result: true,
+                                });
+                            });
                         }
+                    }).catch(function(err) {
+                        next(err);
                     });
                 }
             }

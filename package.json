@@ -19,6 +19,7 @@
     "fs": "0.0.1-security",
     "less-plugin-autoprefix": "^1.4.1",
     "mkdirp": "^0.5.0",
+    "minio": "^8.0.6",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "morgan": "~1.5.0",

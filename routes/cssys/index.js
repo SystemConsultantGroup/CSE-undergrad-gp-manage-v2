@@ -1,13 +1,11 @@
-var config = require('../../config');
 var models = require('../../models/cssys');
 var express = require('express');
 var router = express.Router();
-var fs = require('fs');
-var mkdirp = require('mkdirp');
 var path = require('path');
 var async = require('async');
 var sha256 = require('sha256');
 var moment = require('moment');
+var storage = require('../../lib/minio_storage');
 
 router.all('*', function(req, res, next) {
     // https 리다이렉션 처리 및 세션에 ip 등록 (apache proxypass & x-forwarded-for 보안 문제로 req.ip 사용할수 없으므로)
@@ -348,23 +346,18 @@ router.post('/ajax/board/write/:title', function(req, res, next) {
                         if (file.isFileSizeLimit) {
                             callback("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
                         } else {
-                            var file_name = Date.now() + "-" + file.name;
-                            var file_path = path.join(config.cssys.upload_path, board.title, file_name);
-                            mkdirp(path.join(config.cssys.upload_path, board.title), function(err) {
-                                if (!err) {
-                                    fs.rename(file.path, file_path, function(err) {
-                                        if (!err) {
-                                            req.body.BoardId = board.id;
-                                            req.body.name = file.originalname;
-                                            req.body.path = file_path;
-                                            req.body.type = file.mimetype;
-                                            req.body.size = file.size;
-                                            boardpost.createBoardFile(req.body).then(function(boardfile) {
-                                                callback();
-                                            });
-                                        } else callback(err);
-                                    });
-                                } else callback(err);
+                            var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                            storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
+                                req.body.BoardId = board.id;
+                                req.body.name = file.originalname;
+                                req.body.path = objectKey;
+                                req.body.type = file.mimetype;
+                                req.body.size = file.size;
+                                boardpost.createBoardFile(req.body).then(function(boardfile) {
+                                    callback();
+                                });
+                            }).catch(function(err) {
+                                callback(err);
                             });
                         }
                     } else callback();
@@ -376,8 +369,6 @@ router.post('/ajax/board/write/:title', function(req, res, next) {
                         });
                     } else {
                         boardpost.destroy().then(function() {
-                            if (req.files.file_1) fs.unlinkSync(req.files.file_1.path);
-                            if (req.files.file_2) fs.unlinkSync(req.files.file_2.path);
                             res.send({
                                 result: false,
                                 text: err
@@ -425,23 +416,18 @@ router.post('/ajax/board/reply/:title/:id', function(req, res, next) {
                             if (file.isFileSizeLimit) {
                                 callback("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
                             } else {
-                                var file_name = Date.now() + "-" + file.name;
-                                var file_path = path.join(config.cssys.upload_path, board.title, file_name);
-                                mkdirp(path.join(config.cssys.upload_path, board.title), function(err) {
-                                    if (!err) {
-                                        fs.rename(file.path, file_path, function(err) {
-                                            if (!err) {
-                                                req.body.BoardId = board.id;
-                                                req.body.name = file.originalname;
-                                                req.body.path = file_path;
-                                                req.body.type = file.mimetype;
-                                                req.body.size = file.size;
-                                                boardpost.createBoardFile(req.body).then(function(boardfile) {
-                                                    callback();
-                                                });
-                                            } else callback(err);
-                                        });
-                                    } else callback(err);
+                                var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                                storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
+                                    req.body.BoardId = board.id;
+                                    req.body.name = file.originalname;
+                                    req.body.path = objectKey;
+                                    req.body.type = file.mimetype;
+                                    req.body.size = file.size;
+                                    boardpost.createBoardFile(req.body).then(function(boardfile) {
+                                        callback();
+                                    });
+                                }).catch(function(err) {
+                                    callback(err);
                                 });
                             }
                         } else callback();
@@ -453,8 +439,6 @@ router.post('/ajax/board/reply/:title/:id', function(req, res, next) {
                             });
                         } else {
                             boardpost.destroy().then(function() {
-                                if (req.files.file_1) fs.unlinkSync(req.files.file_1.path);
-                                if (req.files.file_2) fs.unlinkSync(req.files.file_2.path);
                                 res.send({
                                     result: false,
                                     text: err
@@ -551,23 +535,18 @@ router.post('/ajax/board/modify/:title/:id', function(req, res, next) {
                             if (file.isFileSizeLimit) {
                                 callback("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
                             } else {
-                                var file_name = Date.now() + "-" + file.name;
-                                var file_path = path.join(config.cssys.upload_path, board.title, file_name);
-                                mkdirp(path.join(config.cssys.upload_path, board.title), function(err) {
-                                    if (!err) {
-                                        fs.rename(file.path, file_path, function(err) {
-                                            if (!err) {
-                                                req.body.BoardId = board.id;
-                                                req.body.name = file.originalname;
-                                                req.body.path = file_path;
-                                                req.body.type = file.mimetype;
-                                                req.body.size = file.size;
-                                                boardpost.createBoardFile(req.body).then(function(boardfile) {
-                                                    callback();
-                                                });
-                                            } else callback(err);
-                                        });
-                                    } else callback(err);
+                                var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                                storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
+                                    req.body.BoardId = board.id;
+                                    req.body.name = file.originalname;
+                                    req.body.path = objectKey;
+                                    req.body.type = file.mimetype;
+                                    req.body.size = file.size;
+                                    boardpost.createBoardFile(req.body).then(function(boardfile) {
+                                        callback();
+                                    });
+                                }).catch(function(err) {
+                                    callback(err);
                                 });
                             }
                         } else callback();
@@ -578,8 +557,6 @@ router.post('/ajax/board/modify/:title/:id', function(req, res, next) {
                                 id: boardpost.id
                             });
                         } else {
-                            if (req.files.file_1) fs.unlinkSync(req.files.file_1.path);
-                            if (req.files.file_2) fs.unlinkSync(req.files.file_2.path);
                             res.send({
                                 result: false,
                                 text: err
@@ -602,25 +579,20 @@ router.post('/ajax/board/file/upload/:title', function(req, res, next) {
             if (file.isFileSizeLimit) {
                 res.send("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
             } else {
-                var file_name = Date.now() + "-" + file.name;
-                var file_path = path.join(config.cssys.upload_path, board.title, file_name);
-                console.log("\nfilename : ",file_name,"\nfilepath:",file_path);
-                mkdirp(path.join(config.cssys.upload_path, board.title), function(err) {
-                    if (!err) {
-                        fs.rename(file.path, file_path, function(err) {
-                            if (!err) {
-                                req.body.BoardId = board.id;
-                                req.body.name = file.originalname;
-                                req.body.path = file_path;
-                                req.body.type = file.mimetype;
-                                req.body.size = file.size;
-                                req.body.UserId = req.session.user.id;
-                                board.createBoardFile(req.body).then(function(boardfile) {
-                                    res.send("<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction('" + req.query.CKEditorFuncNum + "', '/cssys/ajax/board/file/download/" + board.title + "/" + file_name + "', '업로드 완료!')</script>");
-                                });
-                            } else next(err);
-                        });
-                    } else next(err);
+                var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                var file_name = path.basename(objectKey);
+                storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
+                    req.body.BoardId = board.id;
+                    req.body.name = file.originalname;
+                    req.body.path = objectKey;
+                    req.body.type = file.mimetype;
+                    req.body.size = file.size;
+                    req.body.UserId = req.session.user.id;
+                    board.createBoardFile(req.body).then(function(boardfile) {
+                        res.send("<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction('" + req.query.CKEditorFuncNum + "', '/cssys/ajax/board/file/download/" + board.title + "/" + file_name + "', '업로드 완료!')</script>");
+                    });
+                }).catch(function(err) {
+                    next(err);
                 });
             }
         } else next();
@@ -645,7 +617,9 @@ router.all('/ajax/board/file/download/:title/:file_name', function(req, res, nex
             boardfile.last_access = new Date();
             boardfile.downs++;
             boardfile.save().then(function(boardfile) {
-                res.download(boardfile.path, boardfile.name);
+                storage.sendStoredFileToResponse(boardfile.path, boardfile.name, boardfile.type, res).catch(function(err) {
+                    next(err);
+                });
             });
         } else next();
     });
@@ -658,7 +632,9 @@ router.post('/ajax/board/file/delete/:title/:file_name', function(req, res, next
         include: [{
             model: models.BoardFile,
             where: {
-                path: path.join(config.cssys.upload_path, req.params.title, req.params.file_name)
+                path: {
+                    like: '%' + req.params.file_name
+                }
             }
         }]
     }).then(function(board) {
@@ -670,11 +646,14 @@ router.post('/ajax/board/file/delete/:title/:file_name', function(req, res, next
                     text: '본인 또는 관리자만이 삭제할 수 있습니다.'
                 });
             } else {
-                fs.unlinkSync(boardfile.path);
-                boardfile.destroy().then(function() {
+                storage.removeStoredFile(boardfile.path).then(function() {
+                    return boardfile.destroy();
+                }).then(function() {
                     res.send({
                         result: true
                     });
+                }).catch(function(err) {
+                    next(err);
                 });
             }
         }

@@ -7,8 +7,23 @@ var fs = require('fs');
 var async = require('async');
 var sha256 = require('sha256');
 var moment = require('moment');
-var mkdirp = require('mkdirp');
-var path = require('path');
+var storage = require('../../lib/minio_storage');
+
+function saveUploadedFileToStorage(req, file, section) {
+    var objectKey = storage.makeObjectKey(['work', section], file.originalname || file.name);
+    return storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
+        req.body.name = file.originalname;
+        req.body.path = objectKey;
+        req.body.type = file.mimetype;
+        req.body.size = file.size;
+    });
+}
+
+function removeStoredFileQuietly(storedPath) {
+    return storage.removeStoredFile(storedPath).catch(function() {
+        return null;
+    });
+}
 
 // 로그인 인증 예외 처리
 router.all('*', function(req, res, next) {
@@ -601,57 +616,39 @@ router.post('/system/proc/oath_proposal', async function(req, res, next) {
                                     text: '서약서 파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                                 });
                             } else {
-                                var file_name = Date.now() + "-" + file.name;
-                                var file_path = path.join(config.cssys.upload_path, 'work/oath', file_name);
-                                mkdirp(path.join(config.cssys.upload_path, 'work/oath'), function(err) {
-                                    if (!err) {
-                                        fs.rename(file.path, file_path, function(err) {
-                                            if (!err) {
-                                                req.body.name = file.originalname;
-                                                req.body.path = file_path;
-                                                req.body.type = file.mimetype;
-                                                req.body.size = file.size;
-                                                user.createStudentFile(req.body).then(function(studentfile) {
-                                                    if (user.Student.oathId) {
-                                                        if (user.Student.oathId == 1) {
-                                                            user.Student.setOath(studentfile).then(function() {
-                                                                callback(null, {
-                                                                    result: true,
-                                                                });
-                                                            });
-                                                        } else {
-                                                            try {
-                                                                fs.unlinkSync(user.Student.oath.path);
-                                                            } catch (err) {}
-                                                            user.Student.oath.destroy().then(function() {
-                                                                user.Student.setOath(studentfile).then(function() {
-                                                                    callback(null, {
-                                                                        result: true,
-                                                                    });
-                                                                });
-                                                            });
-                                                        }
-                                                    } else {
+                                saveUploadedFileToStorage(req, file, 'oath').then(function() {
+                                    user.createStudentFile(req.body).then(function(studentfile) {
+                                        if (user.Student.oathId) {
+                                            if (user.Student.oathId == 1) {
+                                                user.Student.setOath(studentfile).then(function() {
+                                                    callback(null, {
+                                                        result: true,
+                                                    });
+                                                });
+                                            } else {
+                                                removeStoredFileQuietly(user.Student.oath.path).then(function() {
+                                                    user.Student.oath.destroy().then(function() {
                                                         user.Student.setOath(studentfile).then(function() {
                                                             callback(null, {
                                                                 result: true,
                                                             });
                                                         });
-                                                    }
-                                                });
-                                            } else {
-                                                callback(null, {
-                                                    result: false,
-                                                    text: err
+                                                    });
                                                 });
                                             }
-                                        });
-                                    } else {
-                                        callback(null, {
-                                            result: false,
-                                            text: err
-                                        });
-                                    }
+                                        } else {
+                                            user.Student.setOath(studentfile).then(function() {
+                                                callback(null, {
+                                                    result: true,
+                                                });
+                                            });
+                                        }
+                                    });
+                                }).catch(function(err) {
+                                    callback(null, {
+                                        result: false,
+                                        text: err
+                                    });
                                 });
                             }
                         } else {
@@ -670,57 +667,39 @@ router.post('/system/proc/oath_proposal', async function(req, res, next) {
                                         text: '제안서 파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                                     });
                                 } else {
-                                    var file_name = Date.now() + "-" + file.name;
-                                    var file_path = path.join(config.cssys.upload_path, 'work/proposal', file_name);
-                                    mkdirp(path.join(config.cssys.upload_path, 'work/proposal'), function(err) {
-                                        if (!err) {
-                                            fs.rename(file.path, file_path, function(err) {
-                                                if (!err) {
-                                                    req.body.name = file.originalname;
-                                                    req.body.path = file_path;
-                                                    req.body.type = file.mimetype;
-                                                    req.body.size = file.size;
-                                                    user.createStudentFile(req.body).then(function(studentfile) {
-                                                        if (user.Student.proposalId) {
-                                                            if (user.Student.proposalId == 1) {
-                                                                user.Student.setProposal(studentfile).then(function() {
-                                                                    callback(null, {
-                                                                        result: true,
-                                                                    });
-                                                                });
-                                                            } else {
-                                                                try {
-                                                                    fs.unlinkSync(user.Student.proposal.path);
-                                                                } catch (err) {}
-                                                                user.Student.proposal.destroy().then(function() {
-                                                                    user.Student.setProposal(studentfile).then(function() {
-                                                                        callback(null, {
-                                                                            result: true,
-                                                                        });
-                                                                    });
-                                                                });
-                                                            }
-                                                        } else {
+                                    saveUploadedFileToStorage(req, file, 'proposal').then(function() {
+                                        user.createStudentFile(req.body).then(function(studentfile) {
+                                            if (user.Student.proposalId) {
+                                                if (user.Student.proposalId == 1) {
+                                                    user.Student.setProposal(studentfile).then(function() {
+                                                        callback(null, {
+                                                            result: true,
+                                                        });
+                                                    });
+                                                } else {
+                                                    removeStoredFileQuietly(user.Student.proposal.path).then(function() {
+                                                        user.Student.proposal.destroy().then(function() {
                                                             user.Student.setProposal(studentfile).then(function() {
                                                                 callback(null, {
                                                                     result: true,
                                                                 });
                                                             });
-                                                        }
-                                                    });
-                                                } else {
-                                                    callback(null, {
-                                                        result: false,
-                                                        text: err
+                                                        });
                                                     });
                                                 }
-                                            });
-                                        } else {
-                                            callback(null, {
-                                                result: false,
-                                                text: err
-                                            });
-                                        }
+                                            } else {
+                                                user.Student.setProposal(studentfile).then(function() {
+                                                    callback(null, {
+                                                        result: true,
+                                                    });
+                                                });
+                                            }
+                                        });
+                                    }).catch(function(err) {
+                                        callback(null, {
+                                            result: false,
+                                            text: err
+                                        });
                                     });
                                 }
                             } else {
@@ -785,46 +764,31 @@ router.post('/system/proc/midreport', async function(req, res, next) {
                         text: '파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                     });
                 } else {
-                    var file_name = Date.now() + "-" + file.name;
-                    var file_path = path.join(config.cssys.upload_path, 'work/midreport', file_name);
-                    mkdirp(path.join(config.cssys.upload_path, 'work/midreport'), function(err) {
-                        if (!err) {
-                            fs.rename(file.path, file_path, function(err) {
-                                if (!err) {
-                                    req.body.name = file.originalname;
-                                    req.body.path = file_path;
-                                    req.body.type = file.mimetype;
-                                    req.body.size = file.size;
-                                    user.createStudentFile(req.body).then(function(studentfile) {
-                                        if (user.Student.midreportId) {
-                                            try {
-                                                fs.unlinkSync(user.Student.midreport.path);
-                                            } catch (err) {}
-                                            user.Student.midreport.destroy().then(function() {
-                                                user.Student.setMidreport(studentfile).then(function() {
-                                                    res.send({
-                                                        result: true,
-                                                    });
-                                                });
+                    saveUploadedFileToStorage(req, file, 'midreport').then(function() {
+                        user.createStudentFile(req.body).then(function(studentfile) {
+                            if (user.Student.midreportId) {
+                                removeStoredFileQuietly(user.Student.midreport.path).then(function() {
+                                    user.Student.midreport.destroy().then(function() {
+                                        user.Student.setMidreport(studentfile).then(function() {
+                                            res.send({
+                                                result: true,
                                             });
-                                        } else {
-                                            user.Student.setMidreport(studentfile).then(function() {
-                                                res.send({
-                                                    result: true,
-                                                });
-                                            });
-                                        }
-                                        user.Student.updateAttributes({
-                                            state: parseInt(user.Student.state/100)*100+user.Student.state%10,
                                         });
                                     });
-                                } else {
-                                    next(err);
-                                }
+                                });
+                            } else {
+                                user.Student.setMidreport(studentfile).then(function() {
+                                    res.send({
+                                        result: true,
+                                    });
+                                });
+                            }
+                            user.Student.updateAttributes({
+                                state: parseInt(user.Student.state/100)*100+user.Student.state%10,
                             });
-                        } else {
-                            next(err);
-                        }
+                        });
+                    }).catch(function(err) {
+                        next(err);
                     });
                 }
             } else {
@@ -879,49 +843,31 @@ router.post('/system/proc/final_etc', async function(req, res, next) {
                                     text: '최종보고서 파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                                 });
                             } else {
-                                var file_name = Date.now() + "-" + file.name;
-                                var file_path = path.join(config.cssys.upload_path, 'work/finalreport', file_name);
-                                mkdirp(path.join(config.cssys.upload_path, 'work/finalreport'), function(err) {
-                                    if (!err) {
-                                        fs.rename(file.path, file_path, function(err) {
-                                            if (!err) {
-                                                req.body.name = file.originalname;
-                                                req.body.path = file_path;
-                                                req.body.type = file.mimetype;
-                                                req.body.size = file.size;
-                                                user.createStudentFile(req.body).then(function(studentfile) {
-                                                    if (user.Student.finalreportId) {
-                                                        try {
-                                                            fs.unlinkSync(user.Student.finalreport.path);
-                                                        } catch (err) {}
-                                                        user.Student.finalreport.destroy().then(function() {
-                                                            user.Student.setFinalreport(studentfile).then(function() {
-                                                                callback(null, {
-                                                                    result: true,
-                                                                });
-                                                            });
+                                saveUploadedFileToStorage(req, file, 'finalreport').then(function() {
+                                    user.createStudentFile(req.body).then(function(studentfile) {
+                                        if (user.Student.finalreportId) {
+                                            removeStoredFileQuietly(user.Student.finalreport.path).then(function() {
+                                                user.Student.finalreport.destroy().then(function() {
+                                                    user.Student.setFinalreport(studentfile).then(function() {
+                                                        callback(null, {
+                                                            result: true,
                                                         });
-                                                    } else {
-                                                        user.Student.setFinalreport(studentfile).then(function() {
-                                                            callback(null, {
-                                                                result: true,
-                                                            });
-                                                        });
-                                                    }
+                                                    });
                                                 });
-                                            } else {
+                                            });
+                                        } else {
+                                            user.Student.setFinalreport(studentfile).then(function() {
                                                 callback(null, {
-                                                    result: false,
-                                                    text: err
+                                                    result: true,
                                                 });
-                                            }
-                                        });
-                                    } else {
-                                        callback(null, {
-                                            result: false,
-                                            text: err
-                                        });
-                                    }
+                                            });
+                                        }
+                                    });
+                                }).catch(function(err) {
+                                    callback(null, {
+                                        result: false,
+                                        text: err
+                                    });
                                 });
                             }
                         } else {
@@ -940,49 +886,31 @@ router.post('/system/proc/final_etc', async function(req, res, next) {
                                         text: '논문/작품 파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                                     });
                                 } else {
-                                    var file_name = Date.now() + "-" + file.name;
-                                    var file_path = path.join(config.cssys.upload_path, 'work/paperwork', file_name);
-                                    mkdirp(path.join(config.cssys.upload_path, 'work/paperwork'), function(err) {
-                                        if (!err) {
-                                            fs.rename(file.path, file_path, function(err) {
-                                                if (!err) {
-                                                    req.body.name = file.originalname;
-                                                    req.body.path = file_path;
-                                                    req.body.type = file.mimetype;
-                                                    req.body.size = file.size;
-                                                    user.createStudentFile(req.body).then(function(studentfile) {
-                                                        if (user.Student.paperworkId) {
-                                                            try {
-                                                                fs.unlinkSync(user.Student.paperwork.path);
-                                                            } catch (err) {}
-                                                            user.Student.paperwork.destroy().then(function() {
-                                                                user.Student.setPaperwork(studentfile).then(function() {
-                                                                    callback(null, {
-                                                                        result: true,
-                                                                    });
-                                                                });
+                                    saveUploadedFileToStorage(req, file, 'paperwork').then(function() {
+                                        user.createStudentFile(req.body).then(function(studentfile) {
+                                            if (user.Student.paperworkId) {
+                                                removeStoredFileQuietly(user.Student.paperwork.path).then(function() {
+                                                    user.Student.paperwork.destroy().then(function() {
+                                                        user.Student.setPaperwork(studentfile).then(function() {
+                                                            callback(null, {
+                                                                result: true,
                                                             });
-                                                        } else {
-                                                            user.Student.setPaperwork(studentfile).then(function() {
-                                                                callback(null, {
-                                                                    result: true,
-                                                                });
-                                                            });
-                                                        }
+                                                        });
                                                     });
-                                                } else {
+                                                });
+                                            } else {
+                                                user.Student.setPaperwork(studentfile).then(function() {
                                                     callback(null, {
-                                                        result: false,
-                                                        text: err
+                                                        result: true,
                                                     });
-                                                }
-                                            });
-                                        } else {
-                                            callback(null, {
-                                                result: false,
-                                                text: err
-                                            });
-                                        }
+                                                });
+                                            }
+                                        });
+                                    }).catch(function(err) {
+                                        callback(null, {
+                                            result: false,
+                                            text: err
+                                        });
                                     });
                                 }
                             } else {
@@ -1004,49 +932,31 @@ router.post('/system/proc/final_etc', async function(req, res, next) {
                                         text: '발표자료 파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                                     });
                                 } else {
-                                    var file_name = Date.now() + "-" + file.name;
-                                    var file_path = path.join(config.cssys.upload_path, 'work/presentation', file_name);
-                                    mkdirp(path.join(config.cssys.upload_path, 'work/presentation'), function(err) {
-                                        if (!err) {
-                                            fs.rename(file.path, file_path, function(err) {
-                                                if (!err) {
-                                                    req.body.name = file.originalname;
-                                                    req.body.path = file_path;
-                                                    req.body.type = file.mimetype;
-                                                    req.body.size = file.size;
-                                                    user.createStudentFile(req.body).then(function(studentfile) {
-                                                        if (user.Student.presentationId) {
-                                                            try {
-                                                                fs.unlinkSync(user.Student.presentation.path);
-                                                            } catch (err) {}
-                                                            user.Student.presentation.destroy().then(function() {
-                                                                user.Student.setPresentation(studentfile).then(function() {
-                                                                    callback(null, {
-                                                                        result: true,
-                                                                    });
-                                                                });
+                                    saveUploadedFileToStorage(req, file, 'presentation').then(function() {
+                                        user.createStudentFile(req.body).then(function(studentfile) {
+                                            if (user.Student.presentationId) {
+                                                removeStoredFileQuietly(user.Student.presentation.path).then(function() {
+                                                    user.Student.presentation.destroy().then(function() {
+                                                        user.Student.setPresentation(studentfile).then(function() {
+                                                            callback(null, {
+                                                                result: true,
                                                             });
-                                                        } else {
-                                                            user.Student.setPresentation(studentfile).then(function() {
-                                                                callback(null, {
-                                                                    result: true,
-                                                                });
-                                                            });
-                                                        }
+                                                        });
                                                     });
-                                                } else {
+                                                });
+                                            } else {
+                                                user.Student.setPresentation(studentfile).then(function() {
                                                     callback(null, {
-                                                        result: false,
-                                                        text: err
+                                                        result: true,
                                                     });
-                                                }
-                                            });
-                                        } else {
-                                            callback(null, {
-                                                result: false,
-                                                text: err
-                                            });
-                                        }
+                                                });
+                                            }
+                                        });
+                                    }).catch(function(err) {
+                                        callback(null, {
+                                            result: false,
+                                            text: err
+                                        });
                                     });
                                 }
                             } else {
@@ -1068,49 +978,31 @@ router.post('/system/proc/final_etc', async function(req, res, next) {
                                         text: '발표자료 파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                                     });
                                 } else {
-                                    var file_name = Date.now() + "-" + file.name;
-                                    var file_path = path.join(config.cssys.upload_path, 'work/conference', file_name);
-                                    mkdirp(path.join(config.cssys.upload_path, 'work/conference'), function(err) {
-                                        if (!err) {
-                                            fs.rename(file.path, file_path, function(err) {
-                                                if (!err) {
-                                                    req.body.name = file.originalname;
-                                                    req.body.path = file_path;
-                                                    req.body.type = file.mimetype;
-                                                    req.body.size = file.size;
-                                                    user.createStudentFile(req.body).then(function(studentfile) {
-                                                        if (user.Student.conferenceId) {
-                                                            try {
-                                                                fs.unlinkSync(user.Student.conference.path);
-                                                            } catch (err) {}
-                                                            user.Student.conference.destroy().then(function() {
-                                                                user.Student.setConference(studentfile).then(function() {
-                                                                    callback(null, {
-                                                                        result: true,
-                                                                    });
-                                                                });
+                                    saveUploadedFileToStorage(req, file, 'conference').then(function() {
+                                        user.createStudentFile(req.body).then(function(studentfile) {
+                                            if (user.Student.conferenceId) {
+                                                removeStoredFileQuietly(user.Student.conference.path).then(function() {
+                                                    user.Student.conference.destroy().then(function() {
+                                                        user.Student.setConference(studentfile).then(function() {
+                                                            callback(null, {
+                                                                result: true,
                                                             });
-                                                        } else {
-                                                            user.Student.setConference(studentfile).then(function() {
-                                                                callback(null, {
-                                                                    result: true,
-                                                                });
-                                                            });
-                                                        }
+                                                        });
                                                     });
-                                                } else {
+                                                });
+                                            } else {
+                                                user.Student.setConference(studentfile).then(function() {
                                                     callback(null, {
-                                                        result: false,
-                                                        text: err
+                                                        result: true,
                                                     });
-                                                }
-                                            });
-                                        } else {
-                                            callback(null, {
-                                                result: false,
-                                                text: err
-                                            });
-                                        }
+                                                });
+                                            }
+                                        });
+                                    }).catch(function(err) {
+                                        callback(null, {
+                                            result: false,
+                                            text: err
+                                        });
                                     });
                                 }
                             } else {
