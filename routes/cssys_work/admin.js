@@ -790,7 +790,7 @@ router.post('/student/:id', function(req, res, next) {
                         text: '파일 사이즈가 초과하였습니다. ( 최대 20MB )'
                     });
                 } else {
-                    var objectKey = storage.makeObjectKey(['work', req.body.upload], file.originalname || file.name);
+                    var objectKey = storage.makeObjectKey(['work', req.body.upload], file.name);
                     storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
                         req.body.name = file.originalname;
                         req.body.path = objectKey;

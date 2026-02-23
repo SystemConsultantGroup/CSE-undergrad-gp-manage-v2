@@ -123,8 +123,8 @@ function applyEnv(baseConfig) {
   const minioEndPoint = pick("MINIO_ENDPOINT");
   if (minioEndPoint !== undefined) config.minio.endPoint = minioEndPoint;
 
-  const minioUseSSL = parseBoolean(pick("MINIO_USE_SSL"));
-  if (minioUseSSL !== undefined) config.minio.useSSL = minioUseSSL;
+  const minioPort = parseNumber(pick("MINIO_PORT"));
+  if (minioPort !== undefined) config.minio.port = minioPort;
 
   const minioAccessKey = pick("MINIO_ACCESS_KEY");
   if (minioAccessKey !== undefined) config.minio.accessKey = minioAccessKey;
@@ -165,7 +165,7 @@ const baseConfig = {
   },
   minio: {
     endPoint: "",
-    useSSL: false,
+    port: 0,
     accessKey: "",
     secretKey: "",
     bucket: ""

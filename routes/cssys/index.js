@@ -346,7 +346,7 @@ router.post('/ajax/board/write/:title', function(req, res, next) {
                         if (file.isFileSizeLimit) {
                             callback("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
                         } else {
-                            var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                            var objectKey = storage.makeObjectKey([board.title], file.name);
                             storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
                                 req.body.BoardId = board.id;
                                 req.body.name = file.originalname;
@@ -416,7 +416,7 @@ router.post('/ajax/board/reply/:title/:id', function(req, res, next) {
                             if (file.isFileSizeLimit) {
                                 callback("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
                             } else {
-                                var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                                var objectKey = storage.makeObjectKey([board.title], file.name);
                                 storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
                                     req.body.BoardId = board.id;
                                     req.body.name = file.originalname;
@@ -535,7 +535,7 @@ router.post('/ajax/board/modify/:title/:id', function(req, res, next) {
                             if (file.isFileSizeLimit) {
                                 callback("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
                             } else {
-                                var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                                var objectKey = storage.makeObjectKey([board.title], file.name);
                                 storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
                                     req.body.BoardId = board.id;
                                     req.body.name = file.originalname;
@@ -579,7 +579,7 @@ router.post('/ajax/board/file/upload/:title', function(req, res, next) {
             if (file.isFileSizeLimit) {
                 res.send("파일 사이즈가 초과하였습니다. ( 최대 20MB )");
             } else {
-                var objectKey = storage.makeObjectKey(['board', board.title], file.originalname || file.name);
+                var objectKey = storage.makeObjectKey([board.title], file.name);
                 var file_name = path.basename(objectKey);
                 storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function() {
                     req.body.BoardId = board.id;
