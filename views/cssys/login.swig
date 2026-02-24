@@ -17,7 +17,7 @@
 				<div class="errors-container"></div>
 				<form method="post" role="form" id="login" class="login-form" style="max-width:500px;margin:0 auto;">
 					<div class="login-header" style="text-align: center;">
-						<a href="https://cs.skku.edu/cssys" class="logo">
+						<a href="https://cssys.scg.skku.ac.kr/cssys" class="logo">
 							<img src="/cssys/assets/img/logo/logo_login.png" alt="SKKU ICC cssys" />
 						</a>
 					</div>
