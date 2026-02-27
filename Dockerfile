@@ -1,13 +1,11 @@
-FROM node:16-bullseye
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends bzip2 \
-    && rm -rf /var/lib/apt/lists/*
+RUN corepack enable pnpm
 
-COPY package*.json ./
-RUN npm install --production
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod
 
 COPY . .
 
@@ -18,4 +16,4 @@ ENV PORT=8091
 
 EXPOSE 8091
 
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]

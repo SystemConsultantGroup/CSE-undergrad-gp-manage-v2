@@ -107,7 +107,7 @@ const baseConfig = {
     username: "",
     password: "",
     database: "",
-    dialect: "",
+    dialect: "mysql",
     dialectOptions: {
       connectTimeout: 60000
     },

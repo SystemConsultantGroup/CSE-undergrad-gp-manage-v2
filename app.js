@@ -5,7 +5,6 @@ process.setMaxListeners(100);
 
 // 필요 모둘 임포트
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -13,9 +12,7 @@ const bodyParser = require('body-parser');
 const compression = require('compression');
 const timeout = require('connect-timeout');
 const session = require('express-session');
-const multer = require('multer');
-const swig = require('swig');
-const moment = require('moment-timezone')
+const moment = require('moment-timezone');
 
 // express session production store
 const MySQLStore = require('express-mysql-session')(session);
@@ -42,9 +39,16 @@ const sessionStore = new MySQLStore({
 
 
 // 뷰 엔진 셋업
-app.engine('swig', swig.renderFile);
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'swig');
+app.set('view engine', 'pug');
+
+// Pug date filter helper using moment
+app.locals.formatDate = function(date, format, offset) {
+    if (!date) return '';
+    var m = moment(date);
+    if (offset !== undefined) m = m.utcOffset(offset);
+    return m.format(format || 'YYYY-MM-DD');
+};
 
 // express 환경 셋업
 app.use(timeout('30s'));
@@ -74,35 +78,13 @@ app.use(session({
     saveUninitialized: true,
     cookie: { maxAge: 3 * 60 * 60 * 1000 } // 세션 유지 3시간
 }));
-app.use(multer({
-    dest: './webdata_tmp/', // 업로드된 파일 임시경로
-    //inMemory: true,
-    limits: {
-        fileSize: 1024 * 1024 * 100, // 업로드 용량 100메가 제한
-        //        files: 1, // 파일, 필드, 파트도 1메가 제한
-        //        fields: 1,
-        //        parts: 1
-    },
-    onFileSizeLimit: function(file) {
-        try {
-            fs.unlinkSync(file.path);
-        } catch (err) {}
-        file.isFileSizeLimit = true;
-        return file;
-    }
-}));
 
-// 뷰 엔진 셋업 ( 세션 떄문에 )
-app.use(function(req, res, next) { // 이거 cssys 로그인 된 모든페이지 렌더링에서 session 값 가져오려는건데 엄청 비효율적일수도 있음
-    swig.setDefaults({
-        cache: false,
-        locals: {
-            env: app.get('env'),
-            session: function() {
-                return req.session;
-            }
-        }
-    });
+// Pass env and session to all views (replaces swig.setDefaults)
+app.use(function(req, res, next) {
+    res.locals.env = app.get('env');
+    res.locals.session = function() {
+        return req.session;
+    };
     next();
 });
 
