@@ -18,7 +18,7 @@ module.exports = function(sequelize, DataTypes) {
             defaultValue: 0,
             comment: '단일전공(0) or 복수전공(1)'
         },
-        title: { 
+        title: {
             type: DataTypes.STRING,
             defaultValue: '',
             comment: '작품/논문 제목'
@@ -82,7 +82,7 @@ module.exports = function(sequelize, DataTypes) {
         ip: {
             type: DataTypes.STRING(127),
             allowNull: false
-        }, 
+        },
         state: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -91,37 +91,37 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_work_student',
-        comment: '학생 정보',
-        classMethods: {
-            associate: function(models) {
-                Student.belongsTo(models.User);
-                Student.belongsTo(models.Prof);
-                Student.belongsTo(models.System);
-                Student.belongsTo(models.StudentInfo);
-                Student.hasMany(models.Permission);
-                Student.belongsTo(models.StudentFile, {
-                    as: 'oath'
-                });
-                Student.belongsTo(models.StudentFile, {
-                    as: 'proposal'
-                });
-                Student.belongsTo(models.StudentFile, {
-                    as: 'midreport'
-                });
-                Student.belongsTo(models.StudentFile, {
-                    as: 'finalreport'
-                });
-                Student.belongsTo(models.StudentFile, {
-                    as: 'paperwork'
-                });
-                Student.belongsTo(models.StudentFile, {
-                    as: 'presentation'
-                });
-                Student.belongsTo(models.StudentFile, {
-                    as: 'conference'
-                });
-            }
-        }
+        comment: '학생 정보'
     });
+
+    Student.associate = function(models) {
+        Student.belongsTo(models.User);
+        Student.belongsTo(models.Prof);
+        Student.belongsTo(models.System);
+        Student.belongsTo(models.StudentInfo);
+        Student.hasMany(models.Permission);
+        Student.belongsTo(models.StudentFile, {
+            as: 'oath'
+        });
+        Student.belongsTo(models.StudentFile, {
+            as: 'proposal'
+        });
+        Student.belongsTo(models.StudentFile, {
+            as: 'midreport'
+        });
+        Student.belongsTo(models.StudentFile, {
+            as: 'finalreport'
+        });
+        Student.belongsTo(models.StudentFile, {
+            as: 'paperwork'
+        });
+        Student.belongsTo(models.StudentFile, {
+            as: 'presentation'
+        });
+        Student.belongsTo(models.StudentFile, {
+            as: 'conference'
+        });
+    };
+
     return Student;
 };

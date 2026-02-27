@@ -53,12 +53,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_major_professor',
-        comment: "cs 전공 교수",
-        classMethods: {
-            associate: function(models) {
-                MajorProf.belongsTo(models.Major);
-            }
-        }
+        comment: "cs 전공 교수"
     });
+
+    MajorProf.associate = function(models) {
+        MajorProf.belongsTo(models.Major);
+    };
+
     return MajorProf;
 };

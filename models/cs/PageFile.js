@@ -20,12 +20,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_page_file',
-        comment: "cs 페이지 업로드 파일",
-        classMethods: {
-            associate: function(models) {
-                PageFile.belongsTo(models.Page);
-            }
-        }
+        comment: "cs 페이지 업로드 파일"
     });
+
+    PageFile.associate = function(models) {
+        PageFile.belongsTo(models.Page);
+    };
+
     return PageFile;
 };

@@ -31,13 +31,13 @@ module.exports = function(sequelize, DataTypes) {
         },                
     }, {
         tableName: 'cs_board_file',
-        comment: "cs 게시판 게시물 첨부 파일",
-        classMethods: {
-            associate: function(models) {
-                BoardFile.belongsTo(models.User);
-                BoardFile.belongsTo(models.BoardPost);
-            }
-        }
+        comment: "cs 게시판 게시물 첨부 파일"
     });
+
+    BoardFile.associate = function(models) {
+        BoardFile.belongsTo(models.User);
+        BoardFile.belongsTo(models.BoardPost);
+    };
+
     return BoardFile;
 };

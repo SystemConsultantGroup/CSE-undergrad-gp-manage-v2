@@ -13,12 +13,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_log_category',
-        comment: "cs 로그 카테고리 분류",
-        classMethods: {
-            associate: function(models) {
-                Log.hasMany(models.LogData);
-            }
-        }
+        comment: "cs 로그 카테고리 분류"
     });
+
+    Log.associate = function(models) {
+        Log.hasMany(models.LogData);
+    };
+
     return Log;
 };

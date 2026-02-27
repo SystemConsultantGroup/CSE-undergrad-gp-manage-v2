@@ -21,12 +21,12 @@ module.exports = function(sequelize, DataTypes) {
             allowNull: false
         }
     }, {
-        tableName: 'cssys_user_log',
-        classMethods: {
-            associate: function(models) {
-                UserLog.belongsTo(models.User);
-            }
-        }
+        tableName: 'cssys_user_log'
     });
+
+    UserLog.associate = function(models) {
+        UserLog.belongsTo(models.User);
+    };
+
     return UserLog;
 };

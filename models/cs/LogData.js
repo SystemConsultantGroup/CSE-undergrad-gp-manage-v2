@@ -28,12 +28,12 @@ module.exports = function(sequelize, DataTypes) {
     }, {
         tableName: 'cs_log_data',
         comment: "cs 로그 데이터",
-        engine: 'MYISAM',
-        classMethods: {
-            associate: function(models) {
-                LogData.belongsTo(models.Log);
-            }
-        }
+        engine: 'MYISAM'
     });
+
+    LogData.associate = function(models) {
+        LogData.belongsTo(models.Log);
+    };
+
     return LogData;
 };

@@ -28,14 +28,14 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_schedule_calendar',
-        comment: '일정관리시스템 캘린더 정보',
-        classMethods: {
-            associate: function(models) {
-                Calendar.belongsTo(models.User);
-                Calendar.hasMany(models.Share);
-                Calendar.hasMany(models.Post);
-            }
-        }
+        comment: '일정관리시스템 캘린더 정보'
     });
+
+    Calendar.associate = function(models) {
+        Calendar.belongsTo(models.User);
+        Calendar.hasMany(models.Share);
+        Calendar.hasMany(models.Post);
+    };
+
     return Calendar;
 };

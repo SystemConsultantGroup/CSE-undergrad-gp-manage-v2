@@ -38,13 +38,13 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_guidance_student',
-        comment: '학생 정보',
-        classMethods: {
-            associate: function(models) {
-                Student.belongsTo(models.User);
-                Student.belongsTo(models.Prof);
-            }
-        }
+        comment: '학생 정보'
     });
+
+    Student.associate = function(models) {
+        Student.belongsTo(models.User);
+        Student.belongsTo(models.Prof);
+    };
+
     return Student;
 };

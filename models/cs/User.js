@@ -32,13 +32,13 @@ module.exports = function(sequelize, DataTypes) {
         },
     }, {
         tableName: 'cs_user',
-        comment: "cs 유저",
-        classMethods: {
-            associate: function(models) {
-                User.hasMany(models.BoardPost);
-                User.hasMany(models.BoardFile);
-            }
-        }
+        comment: "cs 유저"
     });
+
+    User.associate = function(models) {
+        User.hasMany(models.BoardPost);
+        User.hasMany(models.BoardFile);
+    };
+
     return User;
 };

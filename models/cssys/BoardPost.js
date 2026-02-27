@@ -34,23 +34,23 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_board_post',
-        comment: '게시판 게시물',
-        classMethods: {
-            associate: function(models) {
-                BoardPost.belongsTo(models.User);
-                BoardPost.belongsTo(models.Board);
-                BoardPost.belongsTo(models.BoardPost, {
-                    as: 'Parent'
-                });
-                BoardPost.hasMany(models.BoardPost, {
-                    as: 'Childs',
-                    foreignKey: {
-                        name: 'ParentId'
-                    }
-                });
-                BoardPost.hasMany(models.BoardFile);
-            }
-        }
+        comment: '게시판 게시물'
     });
+
+    BoardPost.associate = function(models) {
+        BoardPost.belongsTo(models.User);
+        BoardPost.belongsTo(models.Board);
+        BoardPost.belongsTo(models.BoardPost, {
+            as: 'Parent'
+        });
+        BoardPost.hasMany(models.BoardPost, {
+            as: 'Childs',
+            foreignKey: {
+                name: 'ParentId'
+            }
+        });
+        BoardPost.hasMany(models.BoardFile);
+    };
+
     return BoardPost;
 };

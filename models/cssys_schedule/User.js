@@ -38,14 +38,14 @@ module.exports = function(sequelize, DataTypes) {
             allowNull: false
         }
     }, {
-        tableName: 'cssys_user',
-        classMethods: {
-            associate: function(models) {
-                User.hasMany(models.Calendar);
-                User.hasMany(models.Share);
-                User.hasMany(models.Post);
-            }
-        }
+        tableName: 'cssys_user'
     });
+
+    User.associate = function(models) {
+        User.hasMany(models.Calendar);
+        User.hasMany(models.Share);
+        User.hasMany(models.Post);
+    };
+
     return User;
 };

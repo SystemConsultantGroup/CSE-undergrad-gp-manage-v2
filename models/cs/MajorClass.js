@@ -29,12 +29,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_major_class',
-        comment: "cs 전공 수업",
-        classMethods: {
-            associate: function(models) {
-                MajorClass.belongsTo(models.Major);
-            }
-        }
+        comment: "cs 전공 수업"
     });
+
+    MajorClass.associate = function(models) {
+        MajorClass.belongsTo(models.Major);
+    };
+
     return MajorClass;
 };

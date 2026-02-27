@@ -11,12 +11,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_board_category',
-        comment: "cs 게시판 카테고리 분류",
-        classMethods: {
-            associate: function(models) {
-                Board.hasMany(models.BoardPost);
-            }
-        }
+        comment: "cs 게시판 카테고리 분류"
     });
+
+    Board.associate = function(models) {
+        Board.hasMany(models.BoardPost);
+    };
+
     return Board;
 };

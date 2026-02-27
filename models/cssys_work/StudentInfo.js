@@ -86,11 +86,11 @@ module.exports = function(sequelize, DataTypes) {
         },
         text:{
             type: DataTypes.STRING,
-            comment: '수상/활동 실적'  
+            comment: '수상/활동 실적'
         },
         subject:{
             type: DataTypes.STRING,
-            comment: '졸업 작품/논문 주제 (택1)'  
+            comment: '졸업 작품/논문 주제 (택1)'
         },
         time: {
             type: DataTypes.DATE,
@@ -102,13 +102,13 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_work_student_info',
-        comment: '학생 신청서 정보',
-        classMethods: {
-            associate: function(models) {
-                StudentInfo.belongsTo(models.User);
-                StudentInfo.hasOne(models.Student);                
-            }
-        }
+        comment: '학생 신청서 정보'
     });
+
+    StudentInfo.associate = function(models) {
+        StudentInfo.belongsTo(models.User);
+        StudentInfo.hasOne(models.Student);
+    };
+
     return StudentInfo;
 };

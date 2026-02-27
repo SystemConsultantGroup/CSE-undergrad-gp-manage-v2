@@ -20,12 +20,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_work_system',
-        comment: '시스템 단계',
-        classMethods: {
-            associate: function(models) {
-                System.hasMany(models.Student);
-            }
-        }
+        comment: '시스템 단계'
     });
+
+    System.associate = function(models) {
+        System.hasMany(models.Student);
+    };
+
     return System;
 };

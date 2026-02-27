@@ -25,15 +25,15 @@ module.exports = function(sequelize, DataTypes) {
         ip: {
             type: DataTypes.STRING(127),
             allowNull: false
-        },                
+        },
     }, {
         tableName: 'cssys_work_student_file',
-        comment: '논문/작품 파일',
-        classMethods: {
-            associate: function(models) {
-                StudentFile.belongsTo(models.User);   
-            }
-        }
+        comment: '논문/작품 파일'
     });
+
+    StudentFile.associate = function(models) {
+        StudentFile.belongsTo(models.User);
+    };
+
     return StudentFile;
 };

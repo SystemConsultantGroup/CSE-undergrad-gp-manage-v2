@@ -36,14 +36,14 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_schedule_post',
-        comment: '일정관리시스템 일정 정보',
-        classMethods: {
-            associate: function(models) {
-                Post.belongsTo(models.User);
-                Post.belongsTo(models.Calendar);
-                Post.belongsTo(models.Share);
-            }
-        }
+        comment: '일정관리시스템 일정 정보'
     });
+
+    Post.associate = function(models) {
+        Post.belongsTo(models.User);
+        Post.belongsTo(models.Calendar);
+        Post.belongsTo(models.Share);
+    };
+
     return Post;
 };

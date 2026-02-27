@@ -17,12 +17,12 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_page',
-        comment: "cs 페이지 데이터",
-        classMethods: {
-            associate: function(models) {
-                Page.hasMany(models.PageFile);
-            }
-        }
+        comment: "cs 페이지 데이터"
     });
+
+    Page.associate = function(models) {
+        Page.hasMany(models.PageFile);
+    };
+
     return Page;
 };

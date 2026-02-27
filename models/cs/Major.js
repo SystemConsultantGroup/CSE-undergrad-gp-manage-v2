@@ -15,13 +15,13 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_major_category',
-        comment: "cs 전공 카테고리 분류",
-        classMethods: {
-            associate: function(models) {
-                Major.hasMany(models.MajorProf);
-                Major.hasMany(models.MajorClass);
-            }
-        }
+        comment: "cs 전공 카테고리 분류"
     });
+
+    Major.associate = function(models) {
+        Major.hasMany(models.MajorProf);
+        Major.hasMany(models.MajorClass);
+    };
+
     return Major;
 };

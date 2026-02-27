@@ -17,13 +17,13 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_guidance_permissionlog',
-        comment: '생활 지도 교수 신청',
-        classMethods: {
-            associate: function(models) {
-                GPermissionLog.belongsTo(models.Prof);
-                GPermissionLog.belongsTo(models.Student);
-            }
-        }
+        comment: '생활 지도 교수 신청'
     });
+
+    GPermissionLog.associate = function(models) {
+        GPermissionLog.belongsTo(models.Prof);
+        GPermissionLog.belongsTo(models.Student);
+    };
+
     return GPermissionLog;
 };

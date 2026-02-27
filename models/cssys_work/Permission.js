@@ -25,22 +25,22 @@ module.exports = function(sequelize, DataTypes) {
         },
     }, {
         tableName: 'cssys_work_permission',
-        comment: '교수 신청',
-        classMethods: {
-            associate: function(models) {
-                Permission.belongsTo(models.Prof, {
-                    as: 'firstProf'
-                });
-                Permission.belongsTo(models.Prof, {
-                    as: 'secondProf'
-                });
-                Permission.belongsTo(models.Prof, {
-                    as: 'thirdProf'
-                });
-                Permission.belongsTo(models.Prof);
-                Permission.belongsTo(models.Student);
-            }
-        }
+        comment: '교수 신청'
     });
+
+    Permission.associate = function(models) {
+        Permission.belongsTo(models.Prof, {
+            as: 'firstProf'
+        });
+        Permission.belongsTo(models.Prof, {
+            as: 'secondProf'
+        });
+        Permission.belongsTo(models.Prof, {
+            as: 'thirdProf'
+        });
+        Permission.belongsTo(models.Prof);
+        Permission.belongsTo(models.Student);
+    };
+
     return Permission;
 };

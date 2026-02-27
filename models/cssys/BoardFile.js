@@ -37,14 +37,14 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cssys_board_file',
-        comment: '게시판 게시물 첨부 파일',
-        classMethods: {
-            associate: function(models) {
-                BoardFile.belongsTo(models.User);
-                BoardFile.belongsTo(models.Board);
-                BoardFile.belongsTo(models.BoardPost);
-            }
-        }
+        comment: '게시판 게시물 첨부 파일'
     });
+
+    BoardFile.associate = function(models) {
+        BoardFile.belongsTo(models.User);
+        BoardFile.belongsTo(models.Board);
+        BoardFile.belongsTo(models.BoardPost);
+    };
+
     return BoardFile;
 };

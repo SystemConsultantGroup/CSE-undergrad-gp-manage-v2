@@ -38,15 +38,15 @@ module.exports = function(sequelize, DataTypes) {
             allowNull: false
         }
     }, {
-        tableName: 'cssys_user',
-        classMethods: {
-            associate: function(models) {
-                User.hasOne(models.Prof);
-                User.hasOne(models.Student);
-                User.hasOne(models.StudentInfo);
-                User.hasMany(models.StudentFile);                
-            }
-        }
+        tableName: 'cssys_user'
     });
+
+    User.associate = function(models) {
+        User.hasOne(models.Prof);
+        User.hasOne(models.Student);
+        User.hasOne(models.StudentInfo);
+        User.hasMany(models.StudentFile);
+    };
+
     return User;
 };

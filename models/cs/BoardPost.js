@@ -37,14 +37,14 @@ module.exports = function(sequelize, DataTypes) {
         }
     }, {
         tableName: 'cs_board_post',
-        comment: "cs 게시판 게시물",
-        classMethods: {
-            associate: function(models) {
-                BoardPost.belongsTo(models.User);
-                BoardPost.belongsTo(models.Board);
-                BoardPost.hasMany(models.BoardFile);
-            }
-        }
+        comment: "cs 게시판 게시물"
     });
+
+    BoardPost.associate = function(models) {
+        BoardPost.belongsTo(models.User);
+        BoardPost.belongsTo(models.Board);
+        BoardPost.hasMany(models.BoardFile);
+    };
+
     return BoardPost;
 };
