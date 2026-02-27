@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "example"
-
-
 block page_header
+  - var page = "example"
 	link(rel="stylesheet" href="/cssys/assets/js/datatables/dataTables.bootstrap.css")
 	style.
 	  .panel-body {
@@ -134,4 +132,4 @@ block page_footer
 	  	            $(window).trigger('xenon.resized');
 	  	        }
 	  	    });
-	  	});
+	  	});

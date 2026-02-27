@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "paperwork"
-
-
 block page_header
+  - var page = "paperwork"
 	link(rel="stylesheet" href="/cssys/assets/js/datatables/dataTables.bootstrap.css")
 	link(rel="stylesheet" href="/cssys/assets/js/select2/select2.css")
 	link(rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css")
@@ -291,4 +289,4 @@ block page_footer
 	  				dataList.column(index+1).search($(this).val()).draw();
 	  			});
 	  		});
-	  	});
+	  	});

@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "example"
-
-
 block page_header
+  - var page = "example"
 	style.
 	  #name,#time,#views,#title {
 	  width: 100%;
@@ -130,4 +128,4 @@ block page_footer
 	  			alert("존재하지 않는 글 입니다.");
 	  			window.history.back();
 	  		});
-	  	});
+	  	});

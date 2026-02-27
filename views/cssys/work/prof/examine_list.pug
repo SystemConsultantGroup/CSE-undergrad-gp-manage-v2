@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "examine"
-
-
 block page_header
+  - var page = "examine"
 	link(rel="stylesheet" href="/cssys/assets/js/select2/select2.css")
 	link(rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css")
 	style.
@@ -80,4 +78,4 @@ block page_footer
 	  		$("select[name='id']").on("change", function(e) {
 	  			window.location.href = "./examine/"+e.val;
 	  		});
-	  	});
+	  	});

@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "main"
-
-
 block page_header
+  - var page = "main"
 	style.
 	  @media only screen and (min-width: 1440px) {
 	  .cbp_tmtime {
@@ -1203,4 +1201,4 @@ block page_body
 block page_footer
 	script.
 	  	jQuery(document).ready(function($) {
-	  	});
+	  	});

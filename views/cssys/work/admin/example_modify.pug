@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "example"
-
-
 block page_header
+  - var page = "example"
 	style.
 	  .text-gray {
 	  margin-top: 0px;
@@ -196,4 +194,4 @@ block page_footer
 	  				alert("서버 응답이 없거나 잘못된 요청입니다.");
 	  			});
 	  		}
-	  	}
+	  	}

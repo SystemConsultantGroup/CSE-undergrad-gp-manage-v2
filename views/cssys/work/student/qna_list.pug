@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "qna"
-
-
 block page_header
+  - var page = "qna"
 	link(rel="stylesheet" href="/cssys/assets/js/datatables/dataTables.bootstrap.css")
 	style.
 	  .panel-body {
@@ -135,4 +133,4 @@ block page_footer
 	  	        }
 	  	    });
 	  		$("#qnaList_wrapper .bottom").prepend("<a href='write' class='btn btn-success' style='float:right;margin:10px 0px 0px 30px;'>글쓰기</a>");
-	  	});
+	  	});

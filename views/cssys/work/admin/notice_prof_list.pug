@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "notice_prof"
-
-
 block page_header
+  - var page = "notice_prof"
 	link(rel="stylesheet" href="/cssys/assets/js/datatables/dataTables.bootstrap.css")
 	style.
 	  .panel-body {
@@ -138,4 +136,4 @@ block page_footer
 	  	        }
 	  	    });
 	  		$("#noticeProfList_wrapper .bottom").prepend("<a href='write' class='btn btn-success' style='float:right;margin:10px 0px 0px 30px;'>글쓰기</a>");
-	  	});
+	  	});

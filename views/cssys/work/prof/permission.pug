@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "permission"
-
-
 block page_header
+  - var page = "permission"
 	style.
 	  .table th, .table td{
 	  text-align: center;
@@ -199,4 +197,4 @@ block page_footer
 	  		else alert("지도 학생 선택 가능 학생수를 초과 하셨습니다. 더이상 선택 할 수 없습니다..");
 	  	}
 	  	jQuery(document).ready(function($) {
-	  	});
+	  	});

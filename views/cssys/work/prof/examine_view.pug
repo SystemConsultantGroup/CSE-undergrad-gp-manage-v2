@@ -1,9 +1,7 @@
 extends layout
 
-- var page = "examine"
-
-
 block page_header
+  - var page = "examine"
 	link(rel="stylesheet" href="/cssys/assets/js/select2/select2.css")
 	link(rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css")
 	style.
@@ -365,4 +363,4 @@ block page_footer
 	  			$("form:eq(0) input[name='result']").val(val);
 	  			$("form:eq(0)").submit();
 	  		}
-	  	}
+	  	}
