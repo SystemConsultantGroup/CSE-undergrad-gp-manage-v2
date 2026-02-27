@@ -1,35 +1,35 @@
-import globals from "globals";
-import eslintConfigPrettier from "eslint-config-prettier";
+import globals from 'globals';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
   {
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: "commonjs",
+      sourceType: 'commonjs',
       globals: {
         ...globals.node,
       },
     },
     rules: {
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_|^next$" }],
-      "no-console": "off",
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_|^next$' }],
+      'no-console': 'off',
     },
   },
   {
     ignores: [
-      "node_modules/",
-      "public/assets/",
-      "public/js/bootstrap_js/",
-      "public/css/bootstrap_css/",
-      "_data/",
-      "_templete/",
-      "coverage/",
+      'node_modules/',
+      'public/assets/',
+      'public/js/bootstrap_js/',
+      'public/css/bootstrap_css/',
+      '_data/',
+      '_templete/',
+      'coverage/',
     ],
   },
   {
-    files: ["**/*.mjs"],
+    files: ['**/*.mjs'],
     languageOptions: {
-      sourceType: "module",
+      sourceType: 'module',
     },
   },
   eslintConfigPrettier,

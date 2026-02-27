@@ -4,11 +4,11 @@ var debug = require('debug')('expressapp');
 var config = require('../config');
 var app = require('../app');
 var http = require('http');
-var models = require("../models/cssys_work");
+var models = require('../models/cssys_work');
 
 app.set('port', config.port);
 
-models.sequelize.sync().then(function() {
-    http.createServer(app).listen(app.get('port'));
-    debug('Express server listening on port ' + app.get('port'));
+models.sequelize.sync().then(function () {
+  http.createServer(app).listen(app.get('port'));
+  debug('Express server listening on port ' + app.get('port'));
 });
