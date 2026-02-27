@@ -5,3 +5,4 @@ webdata_tmp/
 webdata/
 .env
 .env.*
+coverage/
