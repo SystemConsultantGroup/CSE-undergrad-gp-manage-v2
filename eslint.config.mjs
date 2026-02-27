@@ -23,7 +23,14 @@ export default [
       "public/css/bootstrap_css/",
       "_data/",
       "_templete/",
+      "coverage/",
     ],
+  },
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      sourceType: "module",
+    },
   },
   eslintConfigPrettier,
 ];
