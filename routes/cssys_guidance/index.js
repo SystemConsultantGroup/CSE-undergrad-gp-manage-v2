@@ -2,6 +2,7 @@ var models = require('../../models/cssys_guidance');
 var models_ = require('../../models/cssys');
 var express = require('express');
 var router = express.Router();
+var { Op } = require('sequelize');
 var storage = require('../../lib/minio_storage');
 
 router.get('*', function(req, res, next) {
@@ -61,7 +62,7 @@ router.all('/ajax/file/download/:title/:file_name', function(req, res, next) {
     models.StudentFile.findOne({
         where: {
             path: {
-                like : '%'+req.params.file_name
+                [Op.like] : '%'+req.params.file_name
             }
         }
     }).then(function(studentfile) {

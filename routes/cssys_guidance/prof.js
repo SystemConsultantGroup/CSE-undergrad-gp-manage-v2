@@ -6,13 +6,21 @@ var models_w = require('../../models/cssys_work');
 var Sequelize = require('sequelize');
 var express = require('express');
 var router = express.Router();
-var async = require('async');
-var sha256 = require('sha256');
+var crypto = require('crypto');
+var { Op } = require('sequelize');
 var moment = require('moment');
 var path = require('path');
-var multer = require('multer'); // upload하는데 필요함
+var multer = require('multer');
+var upload = multer({
+    dest: './webdata_tmp/',
+    limits: { fileSize: 1024 * 1024 * 100 }
+});
 var xlsx = require('node-xlsx');
 var fs = require('fs');
+
+function sha256(input) {
+    return crypto.createHash('sha256').update(String(input)).digest('hex');
+}
 
 // 어드민 로그인 인증 예외 처리
 router.all('*', function(req, res, next) {
@@ -115,7 +123,7 @@ router.get('/main', async (req, res) => {
         where: {
             ids: req.session.user.ids
         },
-        order: 'time desc',
+        order: [['time', 'DESC']],
         attributes: ['success', 'ids', 'time', 'ip', 'createdAt'],
         limit: 5
     });
@@ -155,7 +163,7 @@ router.get('/main', async (req, res) => {
             }]
         }],
         // order: 'SystemId,ids'
-        order: 'ids'
+        order: [['ids', 'ASC']]
     })/* .then(function(users) {
         models.System.findAll().then(function(systems) {
             systems.forEach(function(system) {
@@ -204,7 +212,6 @@ router.get('/permission', async (req, res, next) => { // 자신에게 신청한 
                 attributes: ['name', 'email', 'phone', 'major']
             }]
         }],
-        order: 'createdAt desc',
         order: [[models.Student, {model: models.User},  'name', 'asc']] // 'createdAt desc' 해줘야 함
     });
 
@@ -235,7 +242,7 @@ router.get('/permission/application/:id', function(req, res, next) {
                     models.Permission.findOne({
                         where: {
                             StudentId: user.Student.id,
-                            $or: [{
+                            [Op.or]: [{
                                 firstProfId: prof.id
                             }, {
                                 secondProfId: prof.id
@@ -257,88 +264,71 @@ router.get('/permission/application/:id', function(req, res, next) {
         } else next();
     });
 });
-router.post('/permission/ajax/set_student', function(req, res, next) {
-    models.Prof.findOne({
-        where: {
-            UserId: req.session.user.id
-        }
-    }).then(function(prof) {
+router.post('/permission/ajax/set_student', async function(req, res, next) {
+    try {
+        var prof = await models.Prof.findOne({
+            where: {
+                UserId: req.session.user.id
+            }
+        });
         if (prof) {
-            models.System.findAll({
+            var systems = await models.System.findAll({
                 where: {
                     id: [4, 6, 8]
                 }
-            }).then(function(systems) {
-                systems.forEach(function(system) {
-                    system.isNow = ((new Date()) > system.start && (new Date()) < system.end);
-                });
-                if (systems[0].isNow || systems[1].isNow || systems[2].isNow) {
-                    var yearterm = (new Date()).getFullYear().toString() + ((new Date()).getMonth() < 6 ? "01" : "02");
-                    var order = (systems[0].isNow ? 1 : (systems[1].isNow ? 2 : 3));
-                    async.series([
-                            function(callback) {
-                                models.Student.count({
-                                    where: {
-                                        yearterm: yearterm,
-                                        ProfId: prof.id
-                                    }
-                                }).then(function(count) {
-                                    // callback(null, count);
-                                    callback(null, 0);
-                                });
-                            },
-                            function(callback) {
-                                models.Permission.count({
-                                    where: {
-                                        yearterm: yearterm,
-                                        order: order,
-                                        $or: [{
-                                            firstProfId: prof.id,
-                                            firstSelected: 1
-                                        }, {
-                                            secondProfId: prof.id,
-                                            secondSelected: 1
-                                        }, {
-                                            thirdProfId: prof.id,
-                                            thirdSelected: 1
-                                        }]
-                                    }
-                                }).then(function(count) {
-                                    callback(null, count);
-                                });
-                            }
-                        ],
-                        function(err, counts) {
-                            var selectable = (config.cssys.permit_student_count - (counts[0] + counts[1]) < 0 ? 0 : config.cssys.permit_student_count - (counts[0] + counts[1]));
-                            if (selectable > 0) {
-                                models.Permission.findOne(req.body.id).then(function(permission) {
-                                    if (permission) {
-                                        if (permission.firstProfId == prof.id) {
-                                            permission.firstSelected = 1;
-                                            permission.secondSelected = null;
-                                            permission.thirdSelected = null;
-                                        } else if (permission.secondProfId == prof.id) {
-                                            permission.secondSelected = 1;
-                                            permission.thirdSelected = null;
-                                        } else if (permission.thirdProfId == prof.id) permission.thirdSelected = 1;
-                                        permission.save().then(function(permission) {
-                                            res.send({
-                                                result: true
-                                            });
-                                        });
-                                    }
-                                });
-                            } else {
-                                res.send({
-                                    result: false,
-                                    text: "지도 학생 선택 가능 학생수를 초과 하셨습니다. 더이상 선택 할 수 없습니다."
-                                });
-                            }
-                        });
-                } else next();
             });
+            systems.forEach(function(system) {
+                system.isNow = ((new Date()) > system.start && (new Date()) < system.end);
+            });
+            if (systems[0].isNow || systems[1].isNow || systems[2].isNow) {
+                var yearterm = (new Date()).getFullYear().toString() + ((new Date()).getMonth() < 6 ? "01" : "02");
+                var order = (systems[0].isNow ? 1 : (systems[1].isNow ? 2 : 3));
+                // var count0 = await models.Student.count(...)
+                // callback(null, 0); was original behavior
+                var count0 = 0;
+                var count1 = await models.Permission.count({
+                    where: {
+                        yearterm: yearterm,
+                        order: order,
+                        [Op.or]: [{
+                            firstProfId: prof.id,
+                            firstSelected: 1
+                        }, {
+                            secondProfId: prof.id,
+                            secondSelected: 1
+                        }, {
+                            thirdProfId: prof.id,
+                            thirdSelected: 1
+                        }]
+                    }
+                });
+                var counts = [count0, count1];
+                var selectable = (config.cssys.permit_student_count - (counts[0] + counts[1]) < 0 ? 0 : config.cssys.permit_student_count - (counts[0] + counts[1]));
+                if (selectable > 0) {
+                    var permission = await models.Permission.findByPk(req.body.id);
+                    if (permission) {
+                        if (permission.firstProfId == prof.id) {
+                            permission.firstSelected = 1;
+                            permission.secondSelected = null;
+                            permission.thirdSelected = null;
+                        } else if (permission.secondProfId == prof.id) {
+                            permission.secondSelected = 1;
+                            permission.thirdSelected = null;
+                        } else if (permission.thirdProfId == prof.id) permission.thirdSelected = 1;
+                        await permission.save();
+                        res.send({
+                            result: true
+                        });
+                    }
+                } else {
+                    res.send({
+                        result: false,
+                        text: "지도 학생 선택 가능 학생수를 초과 하셨습니다. 더이상 선택 할 수 없습니다."
+                    });
+                }
+            } else next();
         } else next();
-    });
+    } catch(err) { next(err); }
 });
 
 
@@ -365,7 +355,7 @@ router.get('/student_list/excel/',function(req,res,next){
             ]
         }],
         // order: 'SystemId,ids'
-        order: 'ids'
+        order: [['ids', 'ASC']]
     }).then(function(users) {
         var data = [
             [   '#',
@@ -419,7 +409,7 @@ router.post('/student_list/ajax/get_students', function(req, res, next) {
             ]
         }],
         // order: 'SystemId,ids'
-        order: 'ids'
+        order: [['ids', 'ASC']]
     }).then(function(users) {
         var index = 1;
         users.forEach(function(user) {
@@ -595,7 +585,7 @@ router.get('/qna/modify/:id', function(req, res, next) {
 //------------------------------------------------------------------------------------------
 // 회원정보 수정
 router.get('/config', function(req, res, next) {
-    models.User.findOne(req.session.user.id).then(function(user) {
+    models.User.findByPk(req.session.user.id).then(function(user) {
         if (user !== null) {
             res.render('cssys/guidance/prof/config', {
                 user: user
@@ -604,7 +594,7 @@ router.get('/config', function(req, res, next) {
     });
 });
 router.post('/config', function(req, res, next) {
-    models.User.findOne(req.session.user.id).then(function(user) {
+    models.User.findByPk(req.session.user.id).then(function(user) {
         if (user !== null) {
             var tmp = {
                 email: req.body.email,
@@ -613,7 +603,7 @@ router.post('/config', function(req, res, next) {
                 ip: req.ip
             };
             if (req.body.password !== "") tmp.password = sha256(req.body.password);
-            user.updateAttributes(tmp).then(function(user) {
+            user.update(tmp).then(function(user) {
                 res.send({
                     result: true
                 });

@@ -2,7 +2,11 @@ var config = require('../../config');
 var models = require('../../models/cssys_schedule');
 var express = require('express');
 var router = express.Router();
-var sha256 = require('sha256');
+var crypto = require('crypto');
+
+function sha256(input) {
+    return crypto.createHash('sha256').update(String(input)).digest('hex');
+}
 
 // 어드민 로그인 인증 예외 처리
 router.all('*', function(req, res, next) {
@@ -24,12 +28,13 @@ router.get('/main', function(req, res, next) {
 router.get('/user_list', function(req, res, next) {
     res.render('cssys/schedule/admin/user_list');
 });
-router.post('/user_list/ajax/get_users', function(req, res, next) {
-    models.User.findAll({
-        where: {
-            type: 3
-        }
-    }).then(function(users) {
+router.post('/user_list/ajax/get_users', async function(req, res, next) {
+    try {
+        var users = await models.User.findAll({
+            where: {
+                type: 3
+            }
+        });
         var index = 1;
         users.forEach(function(user) {
             user.dataValues.index = index++;
@@ -38,72 +43,76 @@ router.post('/user_list/ajax/get_users', function(req, res, next) {
         res.send({
             aaData: users
         });
-    });
+    } catch(err) {
+        next(err);
+    }
 });
-router.get('/user_register', function(req, res, next) {
-    models.User.findAll({
-        where: {
-            type: 3
-        }
-    }).then(function(users) {
+router.get('/user_register', async function(req, res, next) {
+    try {
+        var users = await models.User.findAll({
+            where: {
+                type: 3
+            }
+        });
         res.render('cssys/schedule/admin/user_register', {
             users: users
         });
-    });
+    } catch(err) {
+        next(err);
+    }
 });
-router.post('/user_register/ajax/get_user', function(req, res, next) {
-    models.User.findOne({
-        where: {
-            id: req.body.id,
-            type: 3
-        }
-    }).then(function(user) {
-        if (user !== null) {
-            delete user.dataValues.password;
-            res.send(user);
-        } else next();
-    });
-});
-router.post('/user_register', function(req, res, next) {
-    if (req.body.id) { // 수정일경우
-        models.User.findOne({
+router.post('/user_register/ajax/get_user', async function(req, res, next) {
+    try {
+        var user = await models.User.findOne({
             where: {
                 id: req.body.id,
                 type: 3
             }
-        }).then(function(user) {
+        });
+        if (user !== null) {
+            delete user.dataValues.password;
+            res.send(user);
+        } else next();
+    } catch(err) {
+        next(err);
+    }
+});
+router.post('/user_register', async function(req, res, next) {
+    try {
+        if (req.body.id) { // 수정일경우
+            var user = await models.User.findOne({
+                where: {
+                    id: req.body.id,
+                    type: 3
+                }
+            });
             if (user !== null) {
                 if (req.body.password === "") req.body.password = user.password;
                 else req.body.password = sha256(req.body.password);
                 req.body.time = new Date();
                 req.body.ip = req.ip;
-                user.updateAttributes(req.body).then(function(user) {
-                    res.send({
-                        result: true
-                    });
+                await user.update(req.body);
+                res.send({
+                    result: true
                 });
             } else next();
-        });
-    } else { // 추가일경우
-        models.User.findOne({
-            where: {
-                ids: req.body.ids
-            }
-        }).then(function(user) {
+        } else { // 추가일경우
+            var user = await models.User.findOne({
+                where: {
+                    ids: req.body.ids
+                }
+            });
             if (user === null) {
                 req.body.type = 3;
                 req.body.password = sha256(req.body.password);
                 req.body.time = new Date();
                 req.body.ip = req.ip;
                 req.body.title = req.body.ids + "'s Calendar";
-                models.User.create(req.body).then(function(user) {
-                    user.createCalendar(req.body).then(function(calendar) {
-                        calendar.createShare(req.body).then(function(share) {
-                            res.send({
-                                result: true
-                            });
-                        });
-                    });
+                var newUser = await models.User.create(req.body);
+                var calendar = await newUser.createCalendar(req.body);
+                await calendar.createShare(req.body);
+                res.send({
+                    result: true
                 });
             } else {
                 res.send({
@@ -111,7 +120,9 @@ router.post('/user_register', function(req, res, next) {
                     text: '이미 존재하는 아이디 입니다.'
                 });
             }
-        });
+        }
+    } catch(err) {
+        next(err);
     }
 });
 

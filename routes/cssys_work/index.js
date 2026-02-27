@@ -2,6 +2,7 @@ var models = require('../../models/cssys_work');
 var express = require('express');
 var router = express.Router();
 var storage = require('../../lib/minio_storage');
+var { Op } = require('sequelize');
 
 router.get('*', function(req, res, next) {
     req.session.system = "work";
@@ -15,23 +16,23 @@ router.get('/', function(req, res, next) {
     else next();
 });
 
-router.all('/ajax/file/download/:title/:file_name', function(req, res, next) {
-    models.StudentFile.findOne({
-        where: {
-            path: {
-                like : '%'+req.params.file_name
+router.all('/ajax/file/download/:title/:file_name', async function(req, res, next) {
+    try {
+        var studentfile = await models.StudentFile.findOne({
+            where: {
+                path: {
+                    [Op.like]: '%'+req.params.file_name
+                }
             }
-        }
-    }).then(function(studentfile) {
+        });
         if (studentfile !== null) {
             studentfile.last_access = new Date();
-            studentfile.save().then(function(studentfile) {
-                storage.sendStoredFileToResponse(studentfile.path, studentfile.name, studentfile.type, res).catch(function(err) {
-                    next(err);
-                });
-            });
+            await studentfile.save();
+            await storage.sendStoredFileToResponse(studentfile.path, studentfile.name, studentfile.type, res);
         } else next();
-    });
+    } catch(err) {
+        next(err);
+    }
 });
 
 module.exports = router;
