@@ -4,71 +4,11 @@ var debug = require('debug')('expressapp');
 var config = require('../config');
 var app = require('../app');
 var http = require('http');
-var https = require('https');
-//var models = require("../models/cs");
-//var models = require("../models/cssys");
 var models = require("../models/cssys_work");
-var express = require('express');
-var fs = require('fs');
-var path = require('path');
-var spawn = require('child_process').spawn;
-var cron = require('node-cron');
-var moment = require('moment');
 
 app.set('port', config.port);
 
-
-
 models.sequelize.sync().then(function() {
     http.createServer(app).listen(app.get('port'));
-    /*
-    if (process.env.NODE_ENV === 'production') {
-    	var options = {
-				ca: [
-					fs.readFileSync('ssl/AddTrustExternalCARoot.crt', 'utf8'),
-					fs.readFileSync('ssl/COMODORSAAddTrustCA.crt', 'utf8'),
-					fs.readFileSync('ssl/COMODORSADomainValidationSecureServerCA.crt', 'utf8')
-				],
-				key: fs.readFileSync('ssl/icc_skku_ac_kr_SHA256WITHRSA.key', 'utf8'),
-				cert: fs.readFileSync('ssl/icc_skku_ac_kr.crt', 'utf8')
-			};
-        https.createServer(options, function (req, res) {
-		    res.writeHead(301, { "Location": "http://" + req.headers['host'] + req.url });
-		    res.end();
-		}).listen(443);
-    }
-	*/
-
     debug('Express server listening on port ' + app.get('port'));
 });
-
-//backup
-// cron.schedule('0 0 * * *', () => {
-//     var port = config.db.port ? config.db.port : "3306";
-//     var mysqldump = spawn('mysqldump', [
-//         '-u',
-//         config.db.username,
-//         '-p',
-//         config.db.password,
-//         '-h',
-//         config.db.host,
-//         '-P',
-//         port,
-//         '--column-statistics=0',
-//         config.db.database
-//     ]).on('error', function( err ){
-//         console.log('mysqldump failed\n');
-//         console.log(err);
-//     });
-
-//     var wstream = fs.createWriteStream(`./_data/cssys_${moment().format('YYYYMMDDhhmm')}.sql`);
-//     mysqldump
-//         .stdout
-//         .pipe(wstream)
-//         .on('finish', function () {
-//             console.log('Backup Completed')
-//         })
-//         .on('error', function (err) {
-//             console.log('Backup failed\n'+err)
-//         });
-// });

@@ -1,0 +1,155 @@
+extends layout
+
+- var page = "board"
+
+block page_header
+  style.
+    .text-gray {
+      margin-top: 0px;
+    }
+    #files .form-group .col-sm-10 {
+      padding-top: 7px;
+    }
+    #files .form-group .col-sm-10 input{
+      margin-top: -7px;
+    }
+
+block page_body
+  .page-title
+    .title-env
+      h1.title 자유게시판
+      p.description 일정관리시스템의 자유게시판 입니다.
+    .breadcrumb-env
+      ol.breadcrumb.bc-1
+        li
+          a(href="main")
+            i.fa-home
+            | 메인
+        li.active
+          strong 자유게시판
+  .row
+    .col-sm-12
+      .panel.panel-default
+        .panel-body
+          form#board.form-horizontal(role="form" action="/cssys/ajax/board/modify/schedule_board/#{id}" method="post" enctype="multipart/form-data")
+            .form-group
+              label.col-sm-2.control-label(for="ids") 작성자
+              .col-sm-4
+                input.form-control(type="text" name="name" value="" disabled)
+              label.col-sm-2.control-label(for="ids") 비밀글
+              .col-sm-1
+                input(type="checkbox" style="margin-top: 9px;" name="secret")
+            .form-group
+              label.col-sm-2.control-label(for="ids") 제목
+              .col-sm-10
+                input.form-control(type="text" name="title" placeholder="제목을 입력해주세요.")
+            .form-group(style="padding-left:15px;padding-right:15px;")
+              textarea.form-control.editor_prof(name="text" rows="25")
+            #files
+              .form-group
+                label.col-sm-2.control-label 첨부 파일 1
+                .col-sm-10
+                  input.form-control(type="file" name="file_1")
+              .form-group
+                label.col-sm-2.control-label 첨부 파일 2
+                .col-sm-10
+                  input.form-control(type="file" name="file_2")
+            .form-group
+              .col-sm-9
+                h5.text-muted ※ 에디터 상단 [링크]와 [사진] 메뉴를 통해서 이미지 및 파일 업로드도 가능합니다.
+              .col-sm-3(style="text-align:right;")
+                a.btn.btn-white(href="../list") 목록
+                button.btn.btn-success(type="submit") 수정하기
+
+block page_footer
+  script(src="/cssys/assets/js/ckeditor/ckeditor.js")
+  script(src="/cssys/assets/js/ckeditor/adapters/jquery.js")
+  script(src="/cssys/assets/js/jquery.form.min.js")
+  script(type="text/javascript").
+    jQuery(document).ready(function($) {
+      $.post( "/cssys/ajax/board/view/schedule_board/#{id}", function( data ) {
+        if(data.result){
+          $("form input[name='name']").val(data.post.name);
+          $("form input[name='title']").val(data.post.title);
+          $("form textarea[name='text']").html(data.post.text);
+          $("form input[name='title']").focus();
+          if(data.post.notice) $("form input[name='notice']").click();
+          if(data.post.secret) $("form input[name='secret']").click();
+
+
+          for(var index in data.post.files){
+            var size_;
+            if(data.post.files[index].size>1024*1024) size_=(data.post.files[index].size/1024/1024).toFixed(1)+"M";
+            else if(data.post.files[index].size>1024) size_=(data.post.files[index].size/1024).toFixed(1)+"K";
+            else size_+"byte";
+            $("#files .form-group .col-sm-10").eq(index).html(
+              '<a href="'+data.post.files[index].link+'">'+
+                '<span id="title"><i class="fa fa-file-o"></i> &nbsp;<b>'+data.post.files[index].name+'</b> &nbsp;('+size_+') &nbsp;'+data.post.files[index].downs+'회</span>'+
+              '</a> &nbsp;'+
+              '<button type="button" class="btn btn-danger btn-xs" style="margin:0px;" onClick="delete_file(this,\''+data.post.files[index].link.split("/").reverse()[0]+'\','+(parseInt(index)+1)+')">삭제하기</button>'
+            );
+          }
+        }
+        else{
+          alert(data.text);
+          window.history.back();
+        }
+      }).fail(function(){
+        alert("존재하지 않는 글 입니다.");
+        window.history.back();
+      }).always(function() {
+        $(".editor_prof").ckeditor({
+          filebrowserUploadUrl: '/cssys/ajax/board/upload/schedule_board'
+        });
+      });
+
+      $('form#board').submit(function(e) {
+            e.preventDefault();
+              if ($("form input[name='title']").val() === "") {
+              $("form input[name='title']").focus();
+            }
+            else {
+          $(this).ajaxSubmit({
+                    beforeSubmit: function(arr, $form, options) {
+                  $('form button[type="submit"]').attr("disabled", "disabled");
+                      show_loading_bar(70);
+                    },
+                    success: function(data) {
+                          show_loading_bar({
+                            delay: 1,
+                            pct: 100,
+                            finish: function() {
+                              if(!data.result) alert(data.text);
+                                else window.location.href = '../view/#{id}';
+                            }
+                        });
+                    },
+                    error: function(data) {
+                show_loading_bar({
+                            delay: 1,
+                            pct: 100,
+                            finish: function() {
+                              alert("에러가 발생하였습니다. 시스템 관리자에게 문의해주세요.");
+                            }
+                        });
+                    }
+                });
+            }
+        });
+      $("form input[name='title']").focus();
+    });
+    function delete_file(ele,file_name,index){
+      if(confirm("정말 삭제하시겠습니까?")){
+        $.post( "/cssys/ajax/board/file/delete/schedule_board/"+file_name, function( data ) {
+          if(data.result){
+            $(ele).parent().html('<input type="file" class="form-control" name="file_'+index+'">');
+            alert("삭제되었습니다.");
+          }
+          else{
+            alert(data.text);
+          }
+        }).fail(function(){
+          alert("서버 응답이 없거나 잘못된 요청입니다.");
+        });
+      }
+    }

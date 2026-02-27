@@ -6,3 +6,4 @@ public/css/main.css
 _data/
 _templete/
 pnpm-lock.yaml
+*.pug

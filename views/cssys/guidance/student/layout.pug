@@ -1,0 +1,54 @@
+extends ../../layout
+
+block page_body_menu
+  .sidebar-menu-inner
+    header.logo-env
+      .logo
+        a.logo-expanded(href="/cssys/guidance/student/main")
+          img(src="/cssys/assets/img/logo/logo_main.png" alt="SKKU ICC cssys")
+          p(style="text-align:center;font-weight:bold;") 생활지도교수 배정 시스템
+        a.logo-collapsed(href="/cssys/guidance/student/main")
+          img(src="/cssys/assets/img/logo/logo_main_small.png" alt="SKKU ICC cssys")
+      .mobile-menu-toggle.visible-xs
+        a(href="#" data-toggle="mobile-menu")
+          i.fa-bars
+
+    ul#main-menu.main-menu
+      li(class=page=="main" ? "active" : "")
+        a(href="/cssys/guidance/student/main")
+          i.fa.fa-home
+          span.title 메인
+      li(class=page=="notice" ? "active" : "")
+        a(href="/cssys/guidance/student/notice")
+          i.fa.fa-star
+          span.title 공지사항
+      //- commented out old system link
+      //- li(class=page=="system" ? "active" : "")
+      //-   a(href="/cssys/guidance/student/system")
+      //-     i.fa.fa-mortar-board
+      //-     span.title 생활 지도 교수 현황
+      li(class=page=="system" ? "active" : "")
+        a(href="/cssys/guidance/student/regiprof")
+          i.fa.fa-mortar-board
+          span.title 생활 지도 교수 신청/변경
+      li(class=page=="qna" ? "active" : "")
+        a(href="/cssys/guidance/student/qna")
+          i.fa.fa-envelope
+          span.title 질문 및 답변
+      li(class=page=="config" ? "active" : "")
+        a(href="/cssys/guidance/student/config")
+          i.fa.fa-wrench
+          span.title 회원정보 수정
+
+block page_body_footer
+  style.
+    .main-footer .tooltip, .main-footer .tooltip-inner {
+        min-width: 270px !important;
+    }
+  footer.main-footer.sticky.footer-type-1
+    .footer-inner
+      .footer-text
+        | &copy; Copyright 2019 성균관대학교 자연과학캠퍼스 소프트웨어대학
+        strong
+          a.tooltip-primary(href="http://scg.skku.ac.kr" data-toggle="tooltip" data-placement="top" title="" data-original-title="전자전기공학부 18학번 고현수(PM), 강민재, 김병남, 조건희 제작") 시스템컨설턴트그룹
+        | . All Rights Reserved.

@@ -1,0 +1,97 @@
+extends layout
+
+- var page = "config"
+
+block page_header
+  style.
+
+block page_body
+  .page-title
+    .title-env
+      h1.title 회원정보 수정
+      p.description 사용자의 개인 정보를 수정하는 페이지입니다.
+    .breadcrumb-env
+      ol.breadcrumb.bc-1
+        li
+          a(href="main")
+            i.fa-home
+            | 메인
+        li.active
+          strong 회원정보 수정
+  .row
+    .col-sm-12
+      .panel.panel-default
+        .panel-body
+          form#update.form-horizontal(role="form" action="config" method="post")
+            .form-group
+              label.col-sm-2.control-label 아이디
+              .col-sm-10
+                input.form-control(type="text" placeholder=session().user.ids readonly)
+            .form-group-separator
+            .form-group
+              label.col-sm-2.control-label 비밀번호
+              .col-sm-10
+                input.form-control(type="password" name="password" placeholder="(비밀번호 변경일 경우 입력)")
+            .form-group-separator
+            .form-group
+              label.col-sm-2.control-label 이름
+              .col-sm-10
+                input.form-control(type="text" placeholder=session().user.name readonly)
+            .form-group-separator
+            .form-group
+              label.col-sm-2.control-label 이메일
+              .col-sm-10
+                input.form-control(type="email" name="email" value=session().user.email)
+            .form-group-separator
+            .form-group
+              label.col-sm-2.control-label 연락처
+              .col-sm-10
+                input.form-control(type="text" name="phone" value=session().user.phone)
+            .form-group-separator
+            .form-group
+              .col-sm-12
+                button.btn.btn-success(type="submit" style="float:right;") 수정하기
+
+block page_footer
+  script(src="/cssys/assets/js/jquery.form.min.js")
+  script(type="text/javascript").
+    jQuery(document).ready(function($) {
+      $('form#update').submit(function(e) {
+        e.preventDefault();
+            var flag = true;
+        $(this).find("[name='email'],[name='phone']").each(function(index) {
+                if ($(this).val() === "") {
+                    $(this).focus();
+                    $(this).parent().parent().addClass('has-warning');
+                    flag=false;
+                }
+            });
+            if(flag&&confirm("정말 수정하시겠습니까?")){
+          $(this).ajaxSubmit({
+                    beforeSubmit: function(arr, $form, options) {
+                  $('form button[type="submit"]').attr("disabled", "disabled");
+                      show_loading_bar(70);
+                    },
+                    success: function(data) {
+                          show_loading_bar({
+                            delay: 1,
+                            pct: 100,
+                            finish: function() {
+                              if(!data.result) alert(data.text);
+                                else window.location.href = './config';
+                            }
+                        });
+                    },
+                    error: function(data) {
+                show_loading_bar({
+                            delay: 1,
+                            pct: 100,
+                            finish: function() {
+                              alert("에러가 발생하였습니다. 시스템 관리자에게 문의해주세요.");
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
