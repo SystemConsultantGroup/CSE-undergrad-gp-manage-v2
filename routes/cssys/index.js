@@ -415,6 +415,8 @@ router.post(
         delete req.body.ParentId;
         req.body.notice = req.session.user.type === 0 && req.body.notice ? true : false;
         req.body.secret = !req.body.notice && req.body.secret ? true : false;
+        req.body.time = new Date();
+        req.body.ip = req.session.ip;
         var boardpost = await board.createBoardPost(req.body);
         var fileError = null;
         var file_1 = req.files && req.files['file_1'] ? req.files['file_1'][0] : null;
@@ -494,6 +496,8 @@ router.post(
           req.body.ParentId = boardpost.id;
           req.body.notice = req.session.user.type === 0 && req.body.notice ? true : false;
           req.body.secret = !req.body.notice && req.body.secret ? true : false;
+          req.body.time = new Date();
+          req.body.ip = req.session.ip;
           var newpost = await board.createBoardPost(req.body);
           var fileError = null;
           var file_1 = req.files && req.files['file_1'] ? req.files['file_1'][0] : null;

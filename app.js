@@ -122,16 +122,24 @@ app.use(function (req, res, next) {
   next(err);
 });
 
-// production error handler
-// no stacktraces leaked to user
 app.use(function (err, req, res, next) {
-  res.status(err.status || 500);
+  const status = err.status || 500;
+  const isDev = req.app.get('env') === 'development';
+  const now = moment().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss Z');
+
+  // Always log server-side stack trace for debugging 5xx errors.
+  if (status >= 500) {
+    console.error(`[${now}] [ERROR] ${req.method} ${req.originalUrl}`);
+    console.error(err && err.stack ? err.stack : err);
+  }
+
+  res.status(status);
   if (err.status == 404) {
     res.send('Page Not Found');
   } else {
     res.render('error', {
       message: err.message,
-      error: {},
+      error: isDev ? err : {},
       title: 'error',
     });
   }
