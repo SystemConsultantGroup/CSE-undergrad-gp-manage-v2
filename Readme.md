@@ -17,7 +17,7 @@
 | Runtime         | Node.js 22 LTS                                   |
 | Framework       | Express 4.x                                      |
 | ORM             | Sequelize 6 + mysql2                             |
-| Template        | Pug 3                                            |
+| Template        | EJS 4                                            |
 | CSS             | LESS                                             |
 | File Storage    | MinIO                                            |
 | Session Store   | MySQL (express-mysql-session)                    |
@@ -97,17 +97,18 @@ pnpm start
 
 ## 스크립트
 
-| 명령어                  | 설명                         |
-| ----------------------- | ---------------------------- |
-| `pnpm start`            | 프로덕션 서버 시작           |
-| `pnpm run dev`          | 개발 서버 시작 (nodemon)     |
-| `pnpm run build:css`    | LESS → CSS 컴파일            |
-| `pnpm run watch:css`    | LESS 변경 감시 & 자동 컴파일 |
-| `pnpm test`             | Jest 테스트 실행             |
-| `pnpm run lint`         | ESLint 검사                  |
-| `pnpm run lint:fix`     | ESLint 자동 수정             |
-| `pnpm run format`       | Prettier 포맷팅              |
-| `pnpm run format:check` | Prettier 포맷 검사           |
+| 명령어                   | 설명                          |
+| ------------------------ | ----------------------------- |
+| `pnpm start`             | 프로덕션 서버 시작            |
+| `pnpm run dev`           | 개발 서버 시작 (nodemon)      |
+| `pnpm run build:css`     | LESS → CSS 컴파일             |
+| `pnpm run watch:css`     | LESS 변경 감시 & 자동 컴파일  |
+| `pnpm test`              | Jest 테스트 실행              |
+| `pnpm run test:coverage` | Jest 테스트 + 커버리지 리포트 |
+| `pnpm run lint`          | ESLint 검사                   |
+| `pnpm run lint:fix`      | ESLint 자동 수정              |
+| `pnpm run format`        | Prettier 포맷팅               |
+| `pnpm run format:check`  | Prettier 포맷 검사            |
 
 ## 프로젝트 구조
 
@@ -127,8 +128,8 @@ pnpm start
 │   ├── cssys_work/          # 졸업작품 라우트 (admin/prof/student)
 │   ├── cssys_guidance/      # 생활지도 라우트
 │   └── cssys_schedule/      # 일정관리 라우트
-├── views/                   # Pug 템플릿
-│   ├── layout.pug           # 루트 레이아웃
+├── views/                   # EJS 템플릿
+│   ├── partials/            # 공통 레이아웃 (head, navbar, foot 등)
 │   └── cssys/               # 서브시스템별 뷰
 ├── public/                  # 정적 파일 (CSS, JS, 이미지)
 ├── __tests__/               # Jest 테스트
