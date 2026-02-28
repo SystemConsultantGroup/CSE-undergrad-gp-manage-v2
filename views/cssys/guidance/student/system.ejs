@@ -1,0 +1,17 @@
+<%- include('../../../partials/head') %>
+<% var page = "system"; %>
+
+<div class="page-container">
+  <div class="sidebar-menu toggle-others fixed">
+    <%- include('./sidebar') %>
+  </div>
+  <div class="main-content">
+    <%- include('../../../partials/navbar') %>
+
+    <%- include('./role-footer') %>
+  </div>
+</div>
+
+<%- include('../../../partials/loading') %>
+<%- include('../../../partials/foot-scripts') %>
+<%- include('../../../partials/foot-end') %>

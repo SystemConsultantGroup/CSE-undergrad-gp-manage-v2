@@ -1,0 +1,30 @@
+<div class="sidebar-menu-inner">
+  <header class="logo-env">
+    <div class="logo">
+      <a class="logo-expanded" href="/cssys/schedule/user/main">
+        <img src="/cssys/assets/img/logo/logo_main.png" alt="SKKU ICC cssys">
+      </a>
+      <a class="logo-collapsed" href="/cssys/schedule/user/main">
+        <img src="/cssys/assets/img/logo/logo_main_small.png" alt="SKKU ICC cssys">
+      </a>
+    </div>
+    <div class="mobile-menu-toggle visible-xs">
+      <a href="#" data-toggle="mobile-menu"><i class="fa-bars"></i></a>
+    </div>
+  </header>
+
+  <ul id="main-menu" class="main-menu">
+    <li class="<%= page=='main' ? 'active' : '' %>">
+      <a href="/cssys/schedule/user/main"><i class="fa fa-home"></i><span class="title">메인</span></a>
+    </li>
+    <li class="<%= page=='calendar' ? 'active' : '' %>">
+      <a href="/cssys/schedule/user/calendar"><i class="fa fa-calendar"></i><span class="title">캘린더 관리</span></a>
+    </li>
+    <li class="<%= page=='config' ? 'active' : '' %>">
+      <a href="/cssys/schedule/user/config"><i class="fa fa-user"></i><span class="title">회원정보 수정</span></a>
+    </li>
+    <li class="<%= page=='board' ? 'active' : '' %>">
+      <a href="/cssys/schedule/user/board/list"><i class="fa fa-list"></i><span class="title">자유 게시판</span></a>
+    </li>
+  </ul>
+</div>

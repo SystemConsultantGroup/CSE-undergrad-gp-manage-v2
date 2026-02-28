@@ -39,7 +39,7 @@ const sessionStore = new MySQLStore({
 
 // 뷰 엔진 셋업
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+app.set('view engine', 'ejs');
 
 // Pug date filter helper using moment
 app.locals.formatDate = function (date, format, offset) {
@@ -88,9 +88,7 @@ app.use(
 // Pass env and session to all views (replaces swig.setDefaults)
 app.use(function (req, res, next) {
   res.locals.env = app.get('env');
-  res.locals.session = function () {
-    return req.session;
-  };
+  res.locals.session = req.session;
   next();
 });
 

@@ -1,0 +1,1205 @@
+<%- include('../../../partials/head') %>
+<% var page = "main"; %>
+<style>
+  @media only screen and (min-width: 1440px) {
+  .cbp_tmtime {
+  padding-right: 150px !important;
+  }
+  }
+</style>
+
+<div class="page-container">
+  <div class="sidebar-menu toggle-others fixed">
+    <%- include('./sidebar') %>
+  </div>
+  <div class="main-content">
+    <%- include('../../../partials/navbar') %>
+
+    <div class="page-title">
+      <div class="title-env">
+        <h1 class="title">소프트웨어융합대학 연구논문/작품 시스템에 접속하신걸 환영합니다!</h1>
+        <p class="description">아래의 타임라인은 연구 논문/작품 시스템의 단계와 일정입니다.</p>
+      </div>
+      <div class="breadcrumb-env">
+        <ol class="breadcrumb bc-1">
+          <li class="active">
+            <a href="main"><i class="fa-home"></i>메인</a>
+          </li>
+        </ol>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="xe-widget xe-todo-list">
+          <div class="xe-header">
+            <div class="xe-icon">
+              <i class="fa-file-text-o"></i>
+            </div>
+            <div class="xe-label">
+              <strong>최근 사용자 로그인 기록</strong>
+              <span>최근 로그인 기록 5개</span>
+            </div>
+          </div>
+          <div class="xe-body" style="padding-bottom:0px;">
+            <ul class="list-unstyled" style="margin-bottom:0px;">
+              <% loginLog.forEach(function(log) { %>
+                <li <%= !log.success ? 'class="false_log"' : '' %>>
+                  <label>
+                    <div class="cbr-replaced <%= log.success ? 'cbr-checked' : '' %>">
+                      <div class="cbr-input">
+                        <input type="checkbox" class="cbr cbr-done" checked="">
+                      </div>
+                      <div class="cbr-state"><span></span></div>
+                    </div>
+                    <span><%= log.time_ %> - <%= log.ip %> <%= !log.success ? '( 로그인 실패 )' : '' %></span>
+                  </label>
+                </li>
+              <% }); %>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-8">
+        <div class="xe-widget xe-conversations" style="margin-bottom:0px;">
+          <div class="xe-bg-icon">
+            <i class="linecons-comment"></i>
+          </div>
+          <div class="xe-header">
+            <div class="xe-icon">
+              <i class="linecons-comment"></i>
+            </div>
+            <div class="xe-label">
+              <h3>
+                연구논문/작품시스템 메모
+                <small>교수님 또는 관리자가 작성한 메시지 입니다.</small>
+              </h3>
+            </div>
+          </div>
+          <div class="xe-body" style="border-bottom:0px;">
+            <ul class="list-unstyled" style="margin-bottom:0px;">
+              <li style="margin-bottom:0px;">
+                <div class="xe-comment-entry">
+                  <div class="xe-comment" style="padding:10px 0px 0px 0px;">
+                    <% if (student.note) { %>
+                      <pre style="margin-bottom:0px;"><%- student.note %></pre>
+                    <% } else { %>
+                      <pre style="margin-bottom:0px; color:#aaa;">작성된 메시지가 없습니다.</pre>
+                    <% } %>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="cbp_tmtimeline">
+      <%/* 신청서 제출 */%>
+      <% if (system.id < 3) { %>
+        <li>
+          <time class="cbp_tmtime">
+            <span>신청서 제출 단계</span>
+            <span>(일정 미확정)</span>
+          </time>
+          <div class="cbp_tmicon timeline-bg-red">
+            <i class="el-edit"></i>
+          </div>
+          <div class="cbp_tmlabel">
+            <h2>
+              <a href="#">신청서 제출은 6학기에 시작합니다.</a>
+            </h2>
+            <blockquote>
+              <p>학생은 현재 [<%= system.phase %>] 단계 입니다.</p>
+              <p>6학기에 다시 확인해주시기 바랍니다.</p>
+            </blockquote>
+          </div>
+        </li>
+      <% } else if (system.id == 3 || system.id==5 || system.id==7) { %>
+        <% if (systems[1].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span><%= systems[1].start_ %> ~ <%= systems[1].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">1차 희망교수 선택기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출은 <%= systems[1].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[3].isUnder && systems[2].isOver) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span><%= systems[3].start_ %> ~ <%= systems[3].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">2차 희망교수 선택기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출은 <%= systems[3].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[5].isUnder && systems[4].isOver) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span><%= systems[5].start_ %> ~ <%= systems[5].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">3차 희망교수 선택기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출은 <%= systems[5].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[1].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span><%= systems[1].start_ %> ~ <%= systems[1].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">신청서 제출기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출은 <%= systems[1].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+              </blockquote>
+              <a href="system/application" class="btn btn-secondary">바로가기</a>
+            </div>
+          </li>
+        <% } else if (systems[3].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span><%= systems[3].start_ %> ~ <%= systems[3].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">신청서 제출기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출은 <%= systems[3].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+              </blockquote>
+              <a href="system/application" class="btn btn-secondary">바로가기</a>
+            </div>
+          </li>
+        <% } else if (systems[5].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span><%= systems[5].start_ %> ~ <%= systems[5].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">신청서 제출기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출은 <%= systems[5].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+              </blockquote>
+              <a href="system/application" class="btn btn-secondary">바로가기</a>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">신청서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서 제출기간이 아직 확정되지 않았습니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } else { %>
+        <% if (student.StudentInfo) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span>제출 완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">신청서가 제출되었습니다.</a>
+              </h2>
+              <% if (student.StudentInfoId != 1) { %>
+                <blockquote>
+                  <p>신청서 제출이 완료되었습니다.</p>
+                  <p>제출일 : <b><%= student.StudentInfo.time_ %></b></p>
+                </blockquote>
+                <a href="system/application" class="btn btn-info">바로가기</a>
+              <% } else { %>
+                <blockquote>
+                  <p>신청서 제출이 완료되었습니다.</p>
+                </blockquote>
+              <% } %>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>신청서 제출 단계</span>
+              <span>미제출</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-red">
+              <i class="el-edit"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">신청서가 제출되지 않았습니다.</a>
+              </h2>
+              <blockquote>
+                <p>신청서가 제출되지 않았습니다. 시스템 단계가 불일치 합니다.</p>
+                <p>행정실 또는 질문 및 답변 게시판에 문의해주세요.</b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+
+
+      <%/* 희망 교수 선택 */%>
+      <% if (system.id < 3) { %>
+        <li>
+          <time class="cbp_tmtime">
+            <span>희망 교수 선택 단계</span>
+            <span>(일정 미확정)</span>
+          </time>
+          <div class="cbp_tmicon timeline-bg-warning">
+            <i class="el-user"></i>
+          </div>
+          <div class="cbp_tmlabel">
+            <h2>
+              <a href="#">희망 교수 선택은 [신청서 제출] 단계 이후에 시작합니다.</a>
+            </h2>
+            <blockquote>
+              <p>학생은 현재 [<%= system.phase %>] 단계 입니다.</p>
+            </blockquote>
+          </div>
+        </li>
+      <% } else if (system.id < 9 && !student.Prof) { %>
+        <% if (systems[1].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>희망 교수 선택 단계</span>
+              <span><%= systems[1].start_ %> ~ <%= systems[3].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-warning">
+              <i class="el-user"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">희망 교수 선택기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>희망 교수 선택은 <%= systems[1].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[5].isOver) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>희망 교수 선택 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-warning">
+              <i class="el-user"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">희망 교수 선택기간이 끝났습니다.</a>
+              </h2>
+              <blockquote>
+                <p>희망 교수 선택기간이 아직 확정되지 않았습니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else { %>
+          <% if (student.StudentInfo) { %>
+            <li>
+              <time class="cbp_tmtime">
+                <span>희망 교수 선택 단계</span>
+                <span><%= systems[1].start_ %> ~ <%= systems[3].end_ %></span>
+              </time>
+              <div class="cbp_tmicon timeline-bg-warning">
+                <i class="el-user"></i>
+              </div>
+              <div class="cbp_tmlabel">
+                <h2>
+                  <a href="#">희망 교수 선택기간 입니다.</a>
+                </h2>
+                <blockquote>
+                  <p>희망 교수 선택은 총 2차까지 진행됩니다.</p>
+                  <p>1차 선택 : <%= systems[1].start_ %> ~ <%= systems[1].end_ %> ( <%= systems[1].end_ %> 확정 )</p>
+                  <p>2차 선택 : <%= systems[3].start_ %> ~ <%= systems[3].end_ %> ( <%= systems[3].end_ %> 확정 )</p>
+                  <p>3차 선택 : <%= systems[6].start_ %> ~ <%= systems[6].end_ %> ( <%= systems[6].end_ %> 확정 )</p>
+                  <p>미배정시 다음 차수로 진행됩니다.</p>
+                  <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                </blockquote>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+              </div>
+            </li>
+          <% } else { %>
+            <li>
+              <time class="cbp_tmtime">
+                <span>희망 교수 선택 단계</span>
+                <span><%= systems[1].start_ %> ~ <%= systems[3].end_ %></span>
+              </time>
+              <div class="cbp_tmicon timeline-bg-warning">
+                <i class="el-user"></i>
+              </div>
+              <div class="cbp_tmlabel">
+                <h2>
+                  <a href="#">희망 교수 선택기간 입니다.</a>
+                </h2>
+                <blockquote>
+                  <p>희망 교수 선택은 총 2차까지 진행됩니다.</p>
+                  <p>1차 선택 : <%= systems[1].start_ %> ~ <%= systems[1].end_ %> ( <%= systems[1].end_ %> 확정 )</p>
+                  <p>2차 선택 : <%= systems[3].start_ %> ~ <%= systems[3].end_ %> ( <%= systems[3].end_ %> 확정 )</p>
+                  <p>3차 선택 : <%= systems[6].start_ %> ~ <%= systems[6].end_ %> ( <%= systems[6].end_ %> 확정 )</p>
+                  <p>미배정시 다음 차수로 진행됩니다.</p>
+                  <p>먼저 신청서를 제출해주십시오.</p>
+                </blockquote>
+              </div>
+            </li>
+          <% } %>
+        <% } %>
+      <% } else { %>
+        <% if (student.Prof) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>희망 교수 선택 단계</span>
+              <span>배정 완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-warning">
+              <i class="el-user"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">교수 배정이 완료되었습니다.</a>
+              </h2>
+              <blockquote>
+                <p>선택하신 교수님의 배정이 완료되었습니다.</p>
+                <p>성함 : <b><%= prof.User.name %></b></p>
+                <p>이메일 : <b><%= prof.User.email %></b></p>
+                <p>연락처 : <b><%= prof.User.phone %></b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>희망 교수 선택 단계</span>
+              <span>미배정</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-warning">
+              <i class="el-user"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">교수 배정이 완료되지 않았습니다.</a>
+              </h2>
+              <blockquote>
+                <p>교수 배정이 완료되지 않았습니다. 시스템 단계가 불일치 합니다.</p>
+                <p>행정실 또는 질문 및 답변 게시판에 문의해주세요.</b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+
+
+      <%/* 서약서 및 제안서 제출 */%>
+      <% if (system.id < 9) { %>
+        <li>
+          <time class="cbp_tmtime">
+            <span>서약서 및 제안서 제출 단계</span>
+            <span>(일정 미확정)</span>
+          </time>
+          <div class="cbp_tmicon timeline-bg-secondary">
+            <i class="el-doc"></i>
+          </div>
+          <div class="cbp_tmlabel">
+            <h2>
+              <a href="#">서약서 및 제안서 제출은 [희망 교수 선택] 단계 이후에 시작합니다.</a>
+            </h2>
+            <blockquote>
+              <p>학생은 현재 [<%= system.phase %>] 단계 입니다.</p>
+              <p>[희망 교수 선택] 단계 이후에 다시 확인해주시기 바랍니다.</p>
+            </blockquote>
+          </div>
+        </li>
+      <% } else if (system.id == 9) { %>
+        <% if (student.islock) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">서약서 및 제안서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>서약서 및 제안서 제출은 다음 학기에 진행됩니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[7].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span><%= systems[7].start_ %> ~ <%= systems[7].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">서약서 및 제안서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>서약서 및 제안서 제출은 <%= systems[7].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[7].isOver && systems[12].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span><%= systems[7].start_ %> ~ <%= systems[7].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">지도교수 승인 및 반려 예정입니다.</a>
+              </h2>
+              <blockquote>
+                <p>지도교수 승인 및 반려기간은 <%= systems[12].start_ %>부터입니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[7].isNow || systems[12].isNow || systems[13].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span><%= systems[7].start_ %> ~ <%= systems[7].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <% if (systems[12].isNow) { %>
+              <h2>
+                <a href="#"> 지도 교수 승인 및 반려 기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>지도 교수 승인 및 반려 기간은 <%= systems[12].end__ %> 까지 입니다.</p>
+                <p>서약서 파일명 : <b><%= student.oath.name %></b></p>
+                <p>제안서 파일명 : <b><%= student.proposal.name %></b></p>
+                <% if (state[0]==1) { %>
+                <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
+                <% } else if (state[0]==2) { %>
+                <span style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</span>
+                <% } else { %>
+                <span style="color: grey; font-weight: bold; font-size: 15px;"> : 미확인</span>
+                <% } %>
+              </blockquote>
+
+              <% } else if (systems[13].isNow) { %>
+              <h2>
+                <a href="#">서약서 및 제안서 재업로드 기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>서약서 및 제안서 재업로드는 <%= systems[13].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                <% if (state[0]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[0]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+                <% if (state[0]==2) { %>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+                <% } %>
+
+              <% } else { %>
+              <h2>
+                <a href="#">서약서 및 제안서 제출기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>서약서 및 제안서 제출은 <%= systems[7].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                <% if (state[0]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[0]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+                <% if (state[0]!=1) { %>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+                <% } %>
+              <% } %>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">서약서 및 제안서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>서약서 및 제안서 제출기간이 아직 확정되지 않았습니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } else { %>
+        <% if (student.oath || student.proposal) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span>제출 완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">서약서 및 제안서가 제출되었습니다.</a>
+              </h2>
+              <% if (student.oathId == 1 && student.proposalId == 1) { %>
+                <blockquote>
+                  <p>서약서 및 제안서 제출이 완료되었습니다.</p>
+                </blockquote>
+              <% } else { %>
+                <blockquote>
+                  <p>서약서 및 제안서 제출이 완료되었습니다.</p>
+                  <p>서약서 파일명 : <b><%= student.oath.name %></b></p>
+                  <p>제안서 파일명 : <b><%= student.proposal.name %></b></p>
+                  <% if (state[0]==1) { %>
+                  <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
+                  <% } else if (state[0]==2) { %>
+                  <span style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</span>
+                  <% } %>
+                </blockquote>
+                <a href="<%= student.oath.link %>" class="btn btn-info">서약서 다운로드</a>
+                <a href="<%= student.proposal.link %>" class="btn btn-info">제안서 다운로드</a>
+              <% } %>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>서약서 및 제안서 제출 단계</span>
+              <span>미제출</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">서약서 및 제안서가 제출되지 않았습니다.</a>
+              </h2>
+              <blockquote>
+                <p>서약서 및 제안서가 제출되지 않았습니다. 시스템 단계가 불일치 합니다.</p>
+                <p>행정실 또는 질문 및 답변 게시판에 문의해주세요.</b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+
+
+      <%/* 중간보고서 제출 */%>
+      <% if (system.id < 10) { %>
+        <li>
+          <time class="cbp_tmtime">
+            <span>중간보고서 제출 단계</span>
+            <span>(일정 미확정)</span>
+          </time>
+          <div class="cbp_tmicon timeline-bg-info">
+            <i class="el-doc"></i>
+          </div>
+          <div class="cbp_tmlabel">
+            <h2>
+              <a href="#">중간보고서 제출은 [서약서 및 제안서 제출] 단계 이후에 시작합니다.</a>
+            </h2>
+            <blockquote>
+              <p>학생은 현재 [<%= system.phase %>] 단계 입니다.</p>
+              <p>[서약서 및 제안서 제출] 단계 이후에 다시 확인해주시기 바랍니다.</p>
+            </blockquote>
+          </div>
+        </li>
+      <% } else if (system.id == 10) { %>
+        <% if (student.islock) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+            <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">중간보고서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서 제출은 다음 학기에 진행됩니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[8].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+              <span><%= systems[8].start_ %> ~ <%= systems[8].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-info">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">중간보고서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서 제출은 <%= systems[8].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[8].isOver && systems[14].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+              <span><%= systems[8].start_ %> ~ <%= systems[8].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-secondary">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">지도교수 승인 및 반려 예정입니다.</a>
+              </h2>
+              <blockquote>
+                <p>지도교수 승인 및 반려기간은 <%= systems[14].start_ %>부터입니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[8].isNow || systems[14].isNow || systems[15].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+              <span><%= systems[8].start_ %> ~ <%= systems[8].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-info">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <% if (systems[14].isNow) { %>
+              <h2>
+                <a href="#"> 지도 교수 승인 및 반려 기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>지도 교수 승인 및 반려 기간은 <%= systems[14].end__ %> 까지 입니다.</p>
+                <p>중간보고서 파일명 : <b><%= student.midreport.name %></b></p>
+                <% if (state[1]==1) { %>
+                <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
+                <% } else if (state[1]==2) { %>
+                <span style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</span>
+                <% } else { %>
+                <span style="color: grey; font-weight: bold; font-size: 15px;"> : 미확인</span>
+                <% } %>
+              </blockquote>
+
+              <% } else if (systems[15].isNow) { %>
+              <h2>
+                <a href="#"> 중간 보고서 재업로드 기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서 재업로드는 <%= systems[15].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                <% if (state[1]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[1]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+              <% if (state[1]==2) { %>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+              <% } %>
+
+              <% } else { %>
+              <h2>
+                <a href="#">중간보고서 제출기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서 제출은 <%= systems[8].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                <% if (state[1]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[1]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+              <% if (state[1]!=1) { %>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+              <% } %>
+              <% } %>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-info">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">중간보고서 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서 제출기간이 아직 확정되지 않았습니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } else { %>
+        <% if (student.midreport) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+              <span>제출 완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-info">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">중간보고서가 제출되었습니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서 제출이 완료되었습니다.</p>
+                <span>파일명 : <b><%= student.midreport.name %></b></span>
+                <% if (state[1]==1) { %>
+                <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
+                <% } else if (state[1]==2) { %>
+                <span style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</span>
+                <% } %>
+              </blockquote>
+              <a href="<%= student.midreport.link %>" class="btn btn-info">다운로드</a>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>중간보고서 제출 단계</span>
+              <span>미제출</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-info">
+              <i class="el-doc"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">중간보고서가 제출되지 않았습니다.</a>
+              </h2>
+              <blockquote>
+                <p>중간보고서가 제출되지 않았습니다. 시스템 단계가 불일치 합니다.</p>
+                <p>행정실 또는 질문 및 답변 게시판에 문의해주세요.</b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+      <%/* 최종보고서 및 논문/작품, 발표자료 제출 */%>
+      <% if (system.id < 11) { %>
+        <li>
+          <time class="cbp_tmtime">
+            <span>최종보고서 및 논문/작품, 교내 발표자료 제출 단계</span>
+            <span>(일정 미확정)</span>
+          </time>
+          <div class="cbp_tmicon timeline-bg-blue">
+            <i class="fa-copy"></i>
+          </div>
+          <div class="cbp_tmlabel">
+            <h2>
+              <a href="#">최종보고서 및 논문/작품, 교내 발표자료 제출은 [중간보고서 제출] 단계 이후에 시작합니다.</a>
+            </h2>
+            <blockquote>
+              <p>학생은 현재 [<%= system.phase %>] 단계 입니다.</p>
+              <p>[중간보고서 제출] 단계 이후에 다시 확인해주시기 바랍니다.</p>
+            </blockquote>
+          </div>
+        </li>
+      <% } else if (system.id == 11) { %>
+        <% if (systems[9].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>최종보고서 및 논문/작품, 교내 발표자료 제출 단계</span>
+              <span><%= systems[9].start_ %> ~ <%= systems[9].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-blue">
+              <i class="fa-copy"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">최종보고서 및 논문/작품, 교내 발표자료 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>최종보고서 및 논문/작품, 교내 발표자료 제출은 <%= systems[9].start__ %> 부터 가능합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[9].isNow || systems[16].isNow || systems[17].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>최종보고서 및 논문/작품, 교내 발표자료 제출 단계</span>
+              <span><%= systems[9].start_ %> ~ <%= systems[9].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-blue">
+              <i class="fa-copy"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <% if (systems[16].isNow) { %>
+              <h2>
+                <a href="#">지도 교수 승인 및 반려 기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>지도 교수 승인 및 반려 기간은 <%= systems[16].end__ %> 까지 입니다.</p>
+                <% if (state[2]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[2]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+
+              <% } else if (systems[17].isNow) { %>
+              <h2>
+                <a href="#">최종보고서 및 논문/작품, 교내 발표자료 재업로드 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>최종보고서 및 논문/작품, 교내 발표자료 재업로드는 <%= systems[17].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                <% if (state[2]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[2]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+              <% if (state[2]==2) { %>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+              <% } %>
+
+
+              <% } else { %>
+              <h2>
+                <a href="#">최종보고서 및 논문/작품, 교내 발표자료 제출기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>최종보고서 및 논문/작품, 교내 발표자료 제출은 <%= systems[9].end__ %> 까지 가능합니다.</p>
+                <p>아래의 버튼을 통해 바로 진행할 수 있습니다.</p>
+                <% if (state[2]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;">승인됨</p>
+                <% } else if (state[2]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;">반려됨</p>
+                <% } %>
+              </blockquote>
+              <% if (state[2]!=1) { %>
+                <a href="system" class="btn btn-secondary">바로가기</a>
+              <% } %>
+              <% } %>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>최종보고서 및 논문/작품, 교내 발표자료 제출 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-blue">
+              <i class="fa-copy"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">최종보고서 및 논문/작품, 교내 발표자료 제출기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>최종보고서 및 논문/작품, 교내 발표자료 제출기간이 아직 확정되지 않았습니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } else { %>
+        <% if (student.finalreport || student.paperwork || student.presentation || student.conference) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>최종보고서 및 논문/작품, 교내 발표자료 제출 단계</span>
+              <span>제출 완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-blue">
+              <i class="fa-copy"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">최종보고서 및 논문/작품, 발표자료가 제출되었습니다.</a>
+              </h2>
+              <blockquote>
+                <p>최종보고서 및 논문/작품, 교내 발표자료 제출이 완료되었습니다.</p>
+                <span>최종보고서 파일명 : <b><%= student.finalreport.name %></b></span>
+                <% if (state[2]==1) { %>
+                <p style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</p>
+                <% } else if (state[2]==2) { %>
+                <p style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</p>
+                <% } %>
+                <p>논문/작품 파일명 : <b><%= student.paperwork.name %></b></p>
+                <p>교내 발표자료 파일명 : <b><%= student.presentation.name %></b></p>
+                <p>학회 발표증빙자료 파일명 : <b><%= student.conference.name %></b></p>
+              </blockquote>
+              <a href="<%= student.finalreport.link %>" class="btn btn-info">최종보고서 다운로드</a>
+              <a href="<%= student.paperwork.link %>" class="btn btn-info">논문/작품 다운로드</a>
+              <a href="<%= student.presentation.link %>" class="btn btn-info">교내 발표자료 다운로드</a>
+              <a href="<%= student.conference.link %>" class="btn btn-info">학회 발표증빙자료 다운로드</a>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>최종보고서 및 논문/작품, 교내 발표자료 제출 단계</span>
+              <span>미제출</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-blue">
+              <i class="fa-copy"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">최종보고서 및 논문/작품, 교내 발표자료가 제출되지 않았습니다.</a>
+              </h2>
+              <blockquote>
+                <p>최종보고서 및 논문/작품, 교내 발표자료가 제출되지 않았습니다.</p>
+                <p>시스템 단계가 불일치 합니다.</p>
+                <p>행정실 또는 질문 및 답변 게시판에 문의해주세요.</b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+
+
+      <%/* 논문 심사 */%>
+      <% if (system.id < 12) { %>
+        <li>
+          <time class="cbp_tmtime">
+            <span>논문/작품 심사 단계</span>
+            <span>(일정 미확정)</span>
+          </time>
+          <div class="cbp_tmicon timeline-bg-purple">
+            <i class="fa-graduation-cap"></i>
+          </div>
+          <div class="cbp_tmlabel">
+            <h2>
+              <a href="#">논문/작품 심사는 [최종보고서 및 논문/작품, 교내 발표자료 제출] 단계 이후에 시작합니다.</a>
+            </h2>
+            <blockquote>
+              <p>학생은 현재 [<%= system.phase %>] 단계 입니다.</p>
+              <p>[최종보고서 및 논문/작품, 교내 발표자료 제출] 단계 이후에 다시 확인해주시기 바랍니다.</p>
+            </blockquote>
+          </div>
+        </li>
+      <% } else if (system.id == 12) { %>
+        <% if (systems[10].isUnder) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>논문/작품 심사 단계</span>
+              <span><%= systems[10].start_ %> ~ <%= systems[10].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-purple">
+              <i class="fa-graduation-cap"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">논문/작품 심사기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>논문/작품 심사는 <%= systems[10].start__ %> 부터 진행합니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else if (systems[10].isNow) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>논문/작품 심사 단계</span>
+              <span><%= systems[10].start_ %> ~ <%= systems[10].end_ %></span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-purple">
+              <i class="fa-graduation-cap"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">논문/작품 심사기간 입니다.</a>
+              </h2>
+              <blockquote>
+                <p>논문/작품 심사는 <%= systems[10].end__ %> 까지 진행됩니다.</p>
+                <p>이후 현재 페이지에서 결과를 확인 할 수 있습니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>논문/작품 심사 단계</span>
+              <span>(일정 미확정)</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-purple">
+              <i class="fa-graduation-cap"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">논문/작품 심사기간 이전입니다.</a>
+              </h2>
+              <blockquote>
+                <p>논문/작품 심사기간이 아직 확정되지 않았습니다.</p>
+                <p>이후 다시 확인해주시기 바랍니다.</p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } else { %>
+        <% if (system.id == 13 || student.isdisplay && student.result > 0) { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>논문/작품 심사 단계</span>
+              <span>심사 완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-purple">
+              <i class="fa-graduation-cap"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">논문/작품 심사가 완료되었습니다.</a>
+              </h2>
+              <blockquote>
+                <p>논문/작품 제목 : <%= student.title %></p>
+                <% if (student.result==1) { %>
+                  <p>심사 결과  : <b>심사 통과</b></p>
+                <% } else if (student.result==2) { %>
+                  <p>심사 결과  : <b>재심대상자</b></p>
+                <% } else if (student.result==3) { %>
+                  <p>심사 결과  : <b>기합격</b></p>
+                <% } %>
+              </blockquote>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <time class="cbp_tmtime">
+              <span>논문/작품 심사 단계</span>
+              <span>심사 미완료</span>
+            </time>
+            <div class="cbp_tmicon timeline-bg-purple">
+              <i class="fa-graduation-cap"></i>
+            </div>
+            <div class="cbp_tmlabel">
+              <h2>
+                <a href="#">논문/작품 심사가 완료되지 않았습니다.</a>
+              </h2>
+              <blockquote>
+                <p>논문/작품 심사가 완료되지 않았습니다. 시스템 단계가 불일치 합니다.</p>
+                <p>행정실 또는 질문 및 답변 게시판에 문의해주세요.</b></p>
+              </blockquote>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+
+    </ul>
+
+    <%- include('./role-footer') %>
+  </div>
+</div>
+
+<%- include('../../../partials/loading') %>
+<%- include('../../../partials/foot-scripts') %>
+<script>
+  jQuery(document).ready(function($) {
+  });
+</script>
+<%- include('../../../partials/foot-end') %>

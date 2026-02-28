@@ -1,0 +1,25 @@
+<%- include('../../../partials/head') %>
+<% var page = "main"; %>
+<style>
+</style>
+
+<div class="page-container">
+  <div class="sidebar-menu toggle-others fixed">
+    <%- include('./sidebar') %>
+  </div>
+  <div class="main-content">
+    <%- include('../../../partials/navbar') %>
+
+    메인
+
+    <%- include('./role-footer') %>
+  </div>
+</div>
+
+<%- include('../../../partials/loading') %>
+<%- include('../../../partials/foot-scripts') %>
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+});
+</script>
+<%- include('../../../partials/foot-end') %>

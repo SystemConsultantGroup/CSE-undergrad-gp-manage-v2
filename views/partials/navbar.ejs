@@ -1,0 +1,27 @@
+<nav class="navbar user-info-navbar" role="navigation">
+  <ul class="user-info-menu left-links list-inline list-unstyled">
+    <li class="hidden-sm hidden-xs" style="min-height: 54px;">
+      <a href="#" data-toggle="sidebar"><i class="fa-bars"></i></a>
+    </li>
+    <li class="hidden-sm hidden-xs" style="min-height: 54px;">
+      <a><i class="el-user"></i> <%= session.user.name %> 님</a>
+    </li>
+    <li class="hidden-sm hidden-xs" style="min-height: 54px;">
+      <a>
+        <i class="el-cog"></i>
+        <% if (session.system == "work") { %>
+        소프트웨어융합대학 연구논문/작품시스템
+        <% } else if (session.system == "schedule") { %>
+        일정관리시스템
+        <% } else if (session.system == "guidance") { %>
+        소프트웨어대학 생활지도교수 배정 시스템
+        <% } %>
+      </a>
+    </li>
+  </ul>
+  <ul class="user-info-menu right-links list-inline list-unstyled">
+    <li class="hidden-sm hidden-xs" style="min-height: 54px;">
+      <a href="/cssys/logout"><i class="el-lock"></i> 로그아웃</a>
+    </li>
+  </ul>
+</nav>
