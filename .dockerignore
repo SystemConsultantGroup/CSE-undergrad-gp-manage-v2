@@ -1,7 +1,11 @@
 .git
 .github
+.husky
 node_modules
-npm-debug.log
+__tests__
+coverage
+_data
 .dockerignore
 .env
-webdata_tmp
+.env.*
+*.sql
