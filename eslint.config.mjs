@@ -22,7 +22,6 @@ export default [
       'public/js/bootstrap_js/',
       'public/css/bootstrap_css/',
       '_data/',
-      '_templete/',
       'coverage/',
     ],
   },

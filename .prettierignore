@@ -4,6 +4,5 @@ public/js/bootstrap_js/
 public/css/bootstrap_css/
 public/css/main.css
 _data/
-_templete/
 pnpm-lock.yaml
 *.pug
