@@ -146,6 +146,16 @@
 <script src="/cssys/assets/js/jquery.form.min.js"></script>
 <script>
   jQuery(document).ready(function($) {
+    function getErrorText(text) {
+      if (typeof text === 'string') return text;
+      if (text && text.message) return text.message;
+      try {
+        return JSON.stringify(text);
+      } catch (e) {
+        return '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      }
+    }
+
     $('form#ap').submit(function(e) {
       e.preventDefault();
       if($(this).find("input[name='title']").val()==""){
@@ -163,7 +173,7 @@
               pct: 100,
               finish: function() {
                 if(!data.result){
-                  alert(data.text);
+                  alert(getErrorText(data.text));
                   $('button[type="submit"]').removeAttr("disabled");
                 }
                 else{

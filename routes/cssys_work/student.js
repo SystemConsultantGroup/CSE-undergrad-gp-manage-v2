@@ -25,6 +25,8 @@ function saveUploadedFileToStorage(req, file, section) {
     req.body.path = objectKey;
     req.body.type = file.mimetype;
     req.body.size = file.size;
+    req.body.time = new Date();
+    req.body.ip = req.session.ip || req.ip;
   });
 }
 
@@ -32,6 +34,17 @@ function removeStoredFileQuietly(storedPath) {
   return storage.removeStoredFile(storedPath).catch(function () {
     return null;
   });
+}
+
+function toErrorText(err, fallback) {
+  if (!err) return fallback;
+  if (typeof err === 'string') return err;
+  if (err.message) return err.message;
+  try {
+    return JSON.stringify(err);
+  } catch (jsonErr) {
+    return fallback;
+  }
 }
 
 // 로그인 인증 예외 처리
@@ -661,7 +674,7 @@ router.post(
                 await user.Student.setOath(studentfile);
               }
             } catch (err) {
-              result = { result: false, text: err };
+              result = { result: false, text: toErrorText(err, '서약서 업로드 중 오류가 발생했습니다.') };
             }
           }
 
@@ -684,7 +697,7 @@ router.post(
                   await user.Student.setProposal(studentfile2);
                 }
               } catch (err) {
-                result = { result: false, text: err };
+                result = { result: false, text: toErrorText(err, '제안서 업로드 중 오류가 발생했습니다.') };
               }
             }
           }
@@ -857,7 +870,7 @@ router.post(
                 await user.Student.setFinalreport(sf1);
               }
             } catch (err) {
-              result = { result: false, text: err };
+              result = { result: false, text: toErrorText(err, '최종보고서 업로드 중 오류가 발생했습니다.') };
             }
           }
 
@@ -875,7 +888,7 @@ router.post(
                 await user.Student.setPaperwork(sf2);
               }
             } catch (err) {
-              result = { result: false, text: err };
+              result = { result: false, text: toErrorText(err, '논문/작품 업로드 중 오류가 발생했습니다.') };
             }
           }
 
@@ -893,7 +906,7 @@ router.post(
                 await user.Student.setPresentation(sf3);
               }
             } catch (err) {
-              result = { result: false, text: err };
+              result = { result: false, text: toErrorText(err, '교내 발표자료 업로드 중 오류가 발생했습니다.') };
             }
           }
 
@@ -911,7 +924,7 @@ router.post(
                 await user.Student.setConference(sf4);
               }
             } catch (err) {
-              result = { result: false, text: err };
+              result = { result: false, text: toErrorText(err, '학회 발표증빙자료 업로드 중 오류가 발생했습니다.') };
             }
           }
 

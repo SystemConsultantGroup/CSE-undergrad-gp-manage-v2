@@ -273,7 +273,7 @@ router.get('/permission/application/:id', async function (req, res, next) {
         },
       ],
     });
-    if (user) {
+    if (user && user.Student) {
       // 인증 절차
       var prof = await models.Prof.findOne({
         where: {
@@ -298,7 +298,9 @@ router.get('/permission/application/:id', async function (req, res, next) {
           },
         });
         if (permission) {
-          user.Student.StudentInfo.time_ = moment(user.Student.StudentInfo.time).format('YYYY년 M월 D일');
+          if (user.Student.StudentInfo) {
+            user.Student.StudentInfo.time_ = moment(user.Student.StudentInfo.time).format('YYYY년 M월 D일');
+          }
           res.render('cssys/work/prof/permission_application', {
             user: user,
             student: user.Student,
@@ -535,8 +537,10 @@ router.get('/student/application/:id', async function (req, res, next) {
         },
       ],
     });
-    if (user) {
-      user.Student.StudentInfo.time_ = moment(user.Student.StudentInfo.time).format('YYYY년 M월 D일');
+    if (user && user.Student) {
+      if (user.Student.StudentInfo) {
+        user.Student.StudentInfo.time_ = moment(user.Student.StudentInfo.time).format('YYYY년 M월 D일');
+      }
       res.render('cssys/work/prof/student_application', {
         user: user,
         student: user.Student,
@@ -599,7 +603,7 @@ router.get('/student/:id', async function (req, res, next) {
         },
       ],
     });
-    if (user) {
+    if (user && user.Student) {
       [
         'StudentInfo',
         'oath',
@@ -679,7 +683,7 @@ router.post('/student/:id', async function (req, res, next) {
         },
       ],
     });
-    if (user) {
+    if (user && user.Student) {
       user.Student.note = req.body.note;
       user.Student.comment = req.body.comment;
       user.Student.masterpiece = req.body.masterpiece == 1 ? 1 : 0; //원래 비고란이었으나 우수작 선정 체크박스 값 체크하는데 사용
@@ -810,7 +814,7 @@ router.get('/examine/:id', async function (req, res, next) {
             },
           ],
         });
-        if (user) {
+        if (user && user.Student) {
           [
             'StudentInfo',
             'oath',
@@ -905,7 +909,7 @@ router.post('/examine/:id', async function (req, res, next) {
             },
           ],
         });
-        if (user) {
+        if (user && user.Student) {
           user.Student.note = req.body.note;
           user.Student.masterpiece = req.body.masterpiece == 1 ? 1 : 0; //원래 비고란이었으나 우수작 선정 체크박스 값 체크하는데 사용
           if (req.body.result) user.Student.result = req.body.result == 1 ? 1 : 2;
