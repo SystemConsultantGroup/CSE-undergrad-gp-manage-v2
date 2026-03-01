@@ -324,6 +324,7 @@ router.get('/prof_register', function (req, res, next) {
     });
     res.render('cssys/guidance/admin/prof_register', {
       data: result,
+      selectedId: null,
     });
   });
 });
@@ -397,6 +398,7 @@ router.post('/prof_register', function (req, res, next) {
     });
   } else {
     // 추가일경우
+    delete req.body.id;
     models.User.findOne({
       where: {
         ids: req.body.ids,
@@ -901,6 +903,7 @@ router.get('/student_register', function (req, res, next) {
     });
     res.render('cssys/guidance/admin/student_register', {
       users: result,
+      selectedId: null,
     });
   });
 });

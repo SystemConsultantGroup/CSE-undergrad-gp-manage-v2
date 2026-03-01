@@ -213,9 +213,9 @@
   }
   });
 
-  // swig: if selectedId
+  <% if (typeof selectedId !== 'undefined' && selectedId) { %>
   $('select[name="id"]').select2('val',<%= selectedId %>).trigger('select2-selecting');
-  // swig: endif
+  <% } %>
   });
 </script>
 <%- include('../../../partials/foot-end') %>

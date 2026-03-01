@@ -406,6 +406,7 @@ router.get('/prof_register', async function (req, res, next) {
     });
     res.render('cssys/work/admin/prof_register', {
       data: result,
+      selectedId: null,
     });
   } catch (err) {
     next(err);
@@ -486,6 +487,7 @@ router.post('/prof_register', async function (req, res, next) {
       } else next();
     } else {
       // 추가일경우
+      delete req.body.id;
       var user = await models.User.findOne({
         where: {
           ids: req.body.ids,
@@ -976,6 +978,7 @@ router.get('/student_register', async function (req, res, next) {
     res.render('cssys/work/admin/student_register', {
       users: result,
       systems: systems,
+      selectedId: null,
     });
   } catch (err) {
     next(err);
@@ -1095,6 +1098,7 @@ router.post('/student_register', async function (req, res, next) {
       } else next();
     } else {
       // 추가일경우
+      delete req.body.id;
       var user = await models.User.findOne({
         where: {
           ids: req.body.ids,

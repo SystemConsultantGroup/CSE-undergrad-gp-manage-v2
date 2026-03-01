@@ -1,5 +1,6 @@
 <%- include('../../../partials/head') %>
 <% var page = "prof_register"; %>
+<% var hasSelectedId = (typeof selectedId !== 'undefined' && selectedId); %>
 <link rel="stylesheet" href="/cssys/assets/js/select2/select2.css">
 <link rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css">
 <style>
@@ -33,7 +34,7 @@
     </div>
     <div class="row">
       <div class="col-sm-12">
-        <form role="form" class="form-horizontal" id="register" action="<%= selectedId ? '../' : '' %>prof_register" method="post">
+        <form role="form" class="form-horizontal" id="register" action="<%= hasSelectedId ? '../' : '' %>prof_register" method="post">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 class="panel-title">교수 선택</h3>
@@ -135,7 +136,7 @@
   if(e.val) id=e.val;
   else id=$("select[name='id']").val();
 
-  $.post( "<%= selectedId ? '../' : '' %>prof_register/ajax/get_prof",{id:id}, function( data ) {
+  $.post( "<%= hasSelectedId ? '../' : '' %>prof_register/ajax/get_prof",{id:id}, function( data ) {
   $('.form-group').removeClass('has-warning');
   $('input[name="ids"]').val(data.ids).attr("disabled", "disabled");;
   $('input[name="password"]').val("").attr('placeholder','(비밀번호 변경일 경우 입력)');
@@ -174,9 +175,9 @@
   finish: function() {
   if(!data.result){
   alert(data.text);
-  window.location.href = './<%= selectedId ? '../' : '' %>prof_register';
+  window.location.href = './<%= hasSelectedId ? '../' : '' %>prof_register';
   }
-  else window.location.href = './<%= selectedId ? '../' : '' %>prof_register/<%= selectedId %>';
+  else window.location.href = './<%= hasSelectedId ? ("../prof_register/" + selectedId) : "prof_register" %>';
   }
   });
   },
@@ -196,7 +197,7 @@
   if(confirm("교수 정보를 정말 삭제하시겠습니까?\n(배정된 학생은 교수 미배정으로 수정됩니다.)")){
   $('button[type="submit"],button[type="button"]').attr("disabled", "disabled");
   show_loading_bar(70);
-  $.post( "<%= selectedId ? '../' : '' %>prof_register/ajax/del_prof",{id:$("select[name='id']").select2('val')}, function( data ) {
+  $.post( "<%= hasSelectedId ? '../' : '' %>prof_register/ajax/del_prof",{id:$("select[name='id']").select2('val')}, function( data ) {
   show_loading_bar({
   delay: 0.5,
   pct: 100,
@@ -212,7 +213,7 @@
   }
   });
 
-  <% if (selectedId) { %>
+  <% if (hasSelectedId) { %>
   $('select[name="id"]').select2('val',<%= selectedId %>).trigger('select2-selecting');
   <% } %>
   });

@@ -99,6 +99,7 @@ router.post('/user_register', async function (req, res, next) {
       } else next();
     } else {
       // 추가일경우
+      delete req.body.id;
       var user = await models.User.findOne({
         where: {
           ids: req.body.ids,
