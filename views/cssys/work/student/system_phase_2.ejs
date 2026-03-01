@@ -1,5 +1,6 @@
 <%- include('../../../partials/head') %>
 <% var page = "system"; %>
+<% var studentInfo = student.StudentInfo || {}; %>
 <link rel="stylesheet" href="/cssys/assets/js/select2/select2.css">
 <link rel="stylesheet" href="/cssys/assets/js/select2/select2-bootstrap.css">
 <link rel="stylesheet" href="/cssys/assets/lib/taggle/taggle.css">
@@ -82,60 +83,60 @@
                 <label class="col-sm-2 control-label">1학년 1학기</label>
                 <label class="col-sm-1 control-label">취득학점</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="credit11" placeholder="ex) 18" value="<%= student.StudentInfo.credit11 %>">
+                  <input type="text" class="form-control" name="credit11" placeholder="ex) 18" value="<%= studentInfo.credit11 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점평균</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="grade11" placeholder="ex) 4.12" value="<%= student.StudentInfo.grade11 %>">
+                  <input type="text" class="form-control" name="grade11" placeholder="ex) 4.12" value="<%= studentInfo.grade11 %>">
                 </div>
                 <label class="col-sm-2 control-label">1학년 2학기</label>
                 <label class="col-sm-1 control-label">취득학점</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="credit12" placeholder="ex) 18" value="<%= student.StudentInfo.credit12 %>">
+                  <input type="text" class="form-control" name="credit12" placeholder="ex) 18" value="<%= studentInfo.credit12 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점평균</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="grade12" placeholder="ex) 4.12" value="<%= student.StudentInfo.grade12 %>">
+                  <input type="text" class="form-control" name="grade12" placeholder="ex) 4.12" value="<%= studentInfo.grade12 %>">
                 </div>
               </div>
               <div class="form-group">
                 <label class="col-sm-2 control-label">2학년 1학기</label>
                 <label class="col-sm-1 control-label">취득학점</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="credit21" placeholder="ex) 18" value="<%= student.StudentInfo.credit21 %>">
+                  <input type="text" class="form-control" name="credit21" placeholder="ex) 18" value="<%= studentInfo.credit21 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점평균</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="grade21" placeholder="ex) 4.12" value="<%= student.StudentInfo.grade21 %>">
+                  <input type="text" class="form-control" name="grade21" placeholder="ex) 4.12" value="<%= studentInfo.grade21 %>">
                 </div>
                 <label class="col-sm-2 control-label">2학년 2학기</label>
                 <label class="col-sm-1 control-label">취득학점</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="credit22" placeholder="ex) 18" value="<%= student.StudentInfo.credit22 %>">
+                  <input type="text" class="form-control" name="credit22" placeholder="ex) 18" value="<%= studentInfo.credit22 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점평균</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="grade22" placeholder="ex) 4.12" value="<%= student.StudentInfo.grade22 %>">
+                  <input type="text" class="form-control" name="grade22" placeholder="ex) 4.12" value="<%= studentInfo.grade22 %>">
                 </div>
               </div>
               <div class="form-group">
                 <label class="col-sm-2 control-label">3학년 1학기</label>
                 <label class="col-sm-1 control-label">취득학점</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="credit31" placeholder="ex) 18" value="<%= student.StudentInfo.credit31 %>">
+                  <input type="text" class="form-control" name="credit31" placeholder="ex) 18" value="<%= studentInfo.credit31 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점평균</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="grade31" placeholder="ex) 4.12" value="<%= student.StudentInfo.grade31 %>">
+                  <input type="text" class="form-control" name="grade31" placeholder="ex) 4.12" value="<%= studentInfo.grade31 %>">
                 </div>
                 <label class="col-sm-2 control-label">3학년 2학기</label>
                 <label class="col-sm-1 control-label">취득학점</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="credit32" placeholder="ex) 18" value="<%= student.StudentInfo.credit32 %>">
+                  <input type="text" class="form-control" name="credit32" placeholder="ex) 18" value="<%= studentInfo.credit32 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점평균</label>
                 <div class="col-sm-1">
-                  <input type="text" class="form-control" name="grade32" placeholder="ex) 4.12" value="<%= student.StudentInfo.grade32 %>">
+                  <input type="text" class="form-control" name="grade32" placeholder="ex) 4.12" value="<%= studentInfo.grade32 %>">
                 </div>
               </div>
               <div class="form-group">
@@ -170,7 +171,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label">선호 과목 1</label>
                 <div class="col-sm-4">
-                  <input type="text" class="form-control" name="class1" value="<%= student.StudentInfo.class1 %>">
+                  <input type="text" class="form-control" name="class1" value="<%= studentInfo.class1 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점</label>
                 <div class="col-sm-2">
@@ -191,7 +192,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label">선호 과목 2</label>
                 <div class="col-sm-4">
-                  <input type="text" class="form-control" name="class2" value="<%= student.StudentInfo.class2 %>">
+                  <input type="text" class="form-control" name="class2" value="<%= studentInfo.class2 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점</label>
                 <div class="col-sm-2">
@@ -212,7 +213,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label">선호 과목 3</label>
                 <div class="col-sm-4">
-                  <input type="text" class="form-control" name="class3" value="<%= student.StudentInfo.class3 %>">
+                  <input type="text" class="form-control" name="class3" value="<%= studentInfo.class3 %>">
                 </div>
                 <label class="col-sm-1 control-label">학점</label>
                 <div class="col-sm-2">
@@ -234,7 +235,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label">수상/활동 실적</label>
                 <div class="col-sm-10">
-                  <textarea class="form-control autogrow" name="text" placeholder="수상 및 활동 실적 내용 입력"><%- student.StudentInfo.text %></textarea>
+                  <textarea class="form-control autogrow" name="text" placeholder="수상 및 활동 실적 내용 입력"><%- studentInfo.text %></textarea>
                 </div>
               </div>
               <div class="form-group-separator"></div>
@@ -292,9 +293,9 @@
         };
 
         const interestTagHandlerConfig = { tags: [] };
-        CONFIG.list.includes( String('<%= student.StudentInfo.field1 %>') ) ? ( interestTagHandlerConfig.tags.push('<%= student.StudentInfo.field1 %>') ) : ( false );
-        CONFIG.list.includes( String('<%= student.StudentInfo.field2 %>') ) ? ( interestTagHandlerConfig.tags.push('<%= student.StudentInfo.field2 %>') ) : ( false );
-        CONFIG.list.includes( String('<%= student.StudentInfo.field3 %>') ) ? ( interestTagHandlerConfig.tags.push('<%= student.StudentInfo.field3 %>') ) : ( false );
+        CONFIG.list.includes( String('<%= studentInfo.field1 %>') ) ? ( interestTagHandlerConfig.tags.push('<%= studentInfo.field1 %>') ) : ( false );
+        CONFIG.list.includes( String('<%= studentInfo.field2 %>') ) ? ( interestTagHandlerConfig.tags.push('<%= studentInfo.field2 %>') ) : ( false );
+        CONFIG.list.includes( String('<%= studentInfo.field3 %>') ) ? ( interestTagHandlerConfig.tags.push('<%= studentInfo.field3 %>') ) : ( false );
 
         const interestTagHandler = new Taggle(interestElementRender.id, {
           tags: interestTagHandlerConfig.tags,
@@ -389,17 +390,17 @@
       minimumResultsForSearch: -1
     });
 
-    <% if (student.StudentInfo.grade1) { %>
-      $('select[name="grade1"]').select2('val',"<%= student.StudentInfo.grade1 %>");
+    <% if (studentInfo.grade1) { %>
+      $('select[name="grade1"]').select2('val',"<%= studentInfo.grade1 %>");
     <% } %>
-    <% if (student.StudentInfo.grade2) { %>
-      $('select[name="grade2"]').select2('val',"<%= student.StudentInfo.grade2 %>");
+    <% if (studentInfo.grade2) { %>
+      $('select[name="grade2"]').select2('val',"<%= studentInfo.grade2 %>");
     <% } %>
-    <% if (student.StudentInfo.grade3) { %>
-      $('select[name="grade3"]').select2('val',"<%= student.StudentInfo.grade3 %>");
+    <% if (studentInfo.grade3) { %>
+      $('select[name="grade3"]').select2('val',"<%= studentInfo.grade3 %>");
     <% } %>
-    <% if (student.StudentInfo.subject) { %>
-      $('select[name="subject"]').select2('val',"<%= student.StudentInfo.subject %>");
+    <% if (studentInfo.subject) { %>
+      $('select[name="subject"]').select2('val',"<%= studentInfo.subject %>");
     <% } %>
 
     $('form#application').submit(function(e) {
