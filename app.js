@@ -1,5 +1,8 @@
 process.setMaxListeners(100);
 
+// 운영 모드 강제
+process.env.NODE_ENV = 'production';
+
 // 개발에 관한 내용은 최상위 readme 파일을 확인해주세요.
 // 2014. 12. 23 12기 강성현
 
@@ -124,24 +127,18 @@ app.use(function (req, res, next) {
 
 app.use(function (err, req, res, next) {
   const status = err.status || 500;
-  const isDev = req.app.get('env') === 'development';
   const now = moment().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss Z');
 
-  // Always log server-side stack trace for debugging 5xx errors.
+  // 운영 로그는 최소 정보만 남김 (상세 스택/에러 객체 미노출)
   if (status >= 500) {
     console.error(`[${now}] [ERROR] ${req.method} ${req.originalUrl}`);
-    console.error(err && err.stack ? err.stack : err);
   }
 
   res.status(status);
   if (err.status == 404) {
     res.send('Page Not Found');
   } else {
-    res.render('error', {
-      message: err.message,
-      error: isDev ? err : {},
-      title: 'error',
-    });
+    res.render('error', { title: 'error' });
   }
 });
 
