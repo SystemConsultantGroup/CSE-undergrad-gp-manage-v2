@@ -37,8 +37,22 @@
           </div>
           <div class="panel-body">
             <h1 style="margin:0px; padding-left:20px; margin-bottom:30px;">
-              <small><%= date %> <%= ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'][day] %> <%= time %></small>
+              <small id="system-clock"></small>
             </h1>
+            <script>
+              (function() {
+                var days = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+                function pad(n) { return n < 10 ? '0' + n : n; }
+                function updateClock() {
+                  var now = new Date();
+                  var date = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+                  var time = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+                  document.getElementById('system-clock').textContent = date + ' ' + days[now.getDay()] + ' ' + time;
+                }
+                updateClock();
+                setInterval(updateClock, 1000);
+              })();
+            </script>
           </div>
           <div class="panel-heading">
             <h3 class="panel-title">시스템 일정 설정</h3>
