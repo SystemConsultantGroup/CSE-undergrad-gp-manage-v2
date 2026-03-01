@@ -1865,18 +1865,21 @@ router.post('/system', async function (req, res, next) {
 });
 
 router.all('/system/:id', function (req, res, next) {
-  if (req.params.id > 1 && req.params.id < 13) {
-    systemScheduleProc[req.params.id]();
-    res.send({
+  const systemId = Number(req.params.id);
+
+  if (systemId > 1 && systemId < 13) {
+    systemScheduleProc[systemId]();
+    return res.send({
       result: true,
     });
-  } else if (req.params.id == 15 || req.params.id == 17 || req.params.id == 19) {
-    systemScheduleProc[req.params.id == 15 ? 9 : req.params.id == 17 ? 10 : 11]();
-    res.send({
+  } else if (systemId == 15 || systemId == 17 || systemId == 19) {
+    systemScheduleProc[systemId == 15 ? 9 : systemId == 17 ? 10 : 11]();
+    return res.send({
       result: true,
     });
   }
-  next();
+
+  return next();
 });
 
 //------------------------------------------------------------------------------------------
