@@ -1,0 +1,230 @@
+<%- include('../../../partials/head') %>
+<% var page = "permission"; %>
+<style>
+  .table th, .table td{
+  text-align: center;
+  }
+  .tab {
+  padding: 0px 15px 0px 15px;
+  }
+  .tab > div {
+  background-color: rgb(247, 247, 247);
+  padding: 10px 0px 10px 0px;
+  text-align: center;
+  }
+  .tab > div + div {
+  border-left: #EEE 1px solid;
+  }
+  .progress {
+  margin-bottom: 0px;
+  border-right: #EEE 1px solid;
+  }
+  ._exp {
+  color: #bbb;
+  }
+</style>
+
+<div class="page-container">
+  <div class="sidebar-menu toggle-others fixed">
+    <%- include('./sidebar') %>
+  </div>
+  <div class="main-content">
+    <%- include('../../../partials/navbar') %>
+
+    <div class="page-title">
+      <div class="title-env">
+        <h1 class="title">지도 학생 신청 현황 (Applying Students)</h1>
+        <p class="description">지도 신청 학생을 확인하는 페이지 입니다.</p>
+      </div>
+      <div class="breadcrumb-env">
+        <ol class="breadcrumb bc-1">
+          <li>
+            <a href="main"><i class="fa-home"></i>메인</a>
+          </li>
+          <li class="active">
+            <strong>지도 학생 신청 현황</strong>
+          </li>
+        </ol>
+      </div>
+    </div>
+    <div class="row progress">
+      <div class="col-sm-12">
+        <div class="progress progress-striped active">
+          <div class="progress-bar progress-bar-success" style="width:<%= 100/3*(order) %>%;"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="table-responsive" data-pattern="priority-columns" data-focus-btn-icon="fa-asterisk" data-sticky-table-header="true" data-add-display-all-btn="true" data-add-focus-btn="true" style="border-width:0;">
+              <table id="permission" cellspacing="0" class="table table-small-font table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>아이디 (Student ID)</th>
+                    <th>이름 (Name)</th>
+                    <th>전공 (Major)</th>
+                    <th>사유서 (Application Form)</th>
+                    <th>선택 (Accept / Reject)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (permissions.length) { %>
+                    <% permissions.forEach(function(permission) { %>
+                      <tr>
+                        <th></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="10">배정 희망 학생이 없습니다.</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('./role-footer') %>
+  </div>
+</div>
+
+<%- include('../../../partials/loading') %>
+<%- include('../../../partials/foot-scripts') %>
+<script src="/cssys/assets/js/datatables/js/jquery.dataTables.min.js"></script>
+<script src="/cssys/assets/js/datatables/dataTables.bootstrap.js"></script>
+<script src="/cssys/assets/js/datatables/tabletools/dataTables.tableTools.min.js"></script>
+<script src="/cssys/assets/js/datatables/fnReloadAjax.js"></script>
+<script>
+  var permission;
+  jQuery(document).ready(function($) {
+
+  permission=$("#permission").dataTable({
+  "oLanguage": {
+  "sSearch": "검색 (Search) :",
+  "sLengthMenu": "_MENU_ 개씩 보기",
+  "sEmptyTable": "레코드가 없습니다.",
+  "sInfo": "총 _TOTAL_개 중 _START_에서 _END_번째",
+  "sInfoEmpty": "총 0개",
+  "sZeroRecords": "일치하는 글이 없습니다.",
+  "sInfoFiltered": "(총 _MAX_개 중)",
+  "oPaginate": {
+  "sFirst": "처음",
+  "sLast": "마지막",
+  "sNext": "Next",
+  "sPrevious": "Prev"
+  }
+  },
+  "sDom": '<"top"i>rt<"bottom"pf><"clear">',
+  aLengthMenu: [
+  [10, 25, 50, 100, -1],
+  [10, 25, 50, 100, "전체"]
+  ],
+  //"sPaginationType": "full_numbers",
+  "bSort": false,
+  "bProcessing": true,
+  "sAjaxSource": '/cssys/guidance/prof/stu_list',
+  "sServerMethod": "POST",
+  "aoColumns": [
+  {
+  "sWidth": "10%",
+  "mData": "type",
+  "mRender": function(data, type, full) {
+  if(data==="취소") { return "<p style='color:red;'>"+data+"</p>"; }
+  else if(data===null) { return "<i class='fa fa-reply rotate'></i>"; }
+  else return data;
+  }
+  }, {
+  "sWidth": "15%",
+  "mData": "User.ids",
+  "mRender": function(data, type, full) {
+  if(full.type==="취소") { return "<p style='color:red;'>"+data+"</p>"; }
+  else return data;
+  }
+  }, {
+  "sWidth": "15%",
+  "mData": "User.name",
+  "mRender": function(data, type, full) {
+  if(full.type==="취소") { return "<p style='color:red;'>"+data+"</p>"; }
+  else return data;
+  }
+  }, {
+  "sWidth": "15%",
+  "mData": "User.major",
+  "mRender": function(data, type, full) {
+  if(data>=0 && data<6) {
+  if(full.type==="취소") return "<p style='color:red;'>"+['전자전기공학부', '컴퓨터공학과', '반도체시스템공학과', '소프트웨어학과', '정보통신대학', '인터랙션사이언스학과'][data]+"</p>"
+  else return ['전자전기공학부', '컴퓨터공학과', '반도체시스템공학과', '소프트웨어학과', '정보통신대학', '인터랙션사이언스학과'][data]
+  }
+  else return "(미지정)";
+  }
+  }, {
+  "sWidth": "30%",
+  "mData": "note",
+  "mRender": function(data, type, full) {
+  if(full.type==="취소" && data!==null) return "<p style='color:red;'>"+data.slice(3,-3)+"</p>";
+  else return data;
+  }
+  }, {
+  "sWidth": "15%",
+  "mRender": function(data,type,full){
+  if(full.type==="취소") { return "<button class=\"btn btn-danger\" onclick=\"cancelCheck("+full.logId+")\">확인</button>"; }
+  return "<button class=\"btn btn-success\" onclick=\"acptStudent("+full.id+")\">수락</button><button class=\"btn btn-dark\" onclick=\"rejectStudent("+full.id+")\">거절</button>";
+  }
+  }],
+  "fnDrawCallback": function(oSettings) {
+  $(window).trigger('xenon.resized');
+  }
+  });
+  });
+  function acptStudent(StudentId) {
+  var flag= confirm("수락하시겠습니까?")
+  if (flag) {
+  $.post("/cssys/guidance/prof/acpt",
+  {student_Id: StudentId}, function( data ) {
+  if(!data.result){
+  alert("오류가 발생하였습니다. 관리자에게 문의하여 주십시오.");
+  }  else {
+  alert("신청되었습니다.");
+  location.reload();
+  }
+  });
+  }
+  };
+  function rejectStudent(StudentId) {
+  var flag= confirm("거절하시겠습니까?")
+  if (flag) {
+  $.post("/cssys/guidance/prof/reject",
+  {student_Id: StudentId}, function( data ) {
+  if(!data.result){
+  alert("오류가 발생하였습니다. 관리자에게 문의하여 주십시오.");
+  }  else {
+  alert("거절되었습니다.");
+  location.reload();
+  }
+  });
+  }
+  };
+  function cancelCheck(logId) {
+  $.post("/cssys/guidance/prof/cancelCheck",
+  {logId: logId}, function( data ) {
+  if(!data.result){
+  alert("오류가 발생하였습니다. 관리자에게 문의하여 주십시오.");
+  }  else {
+  location.reload();
+  }
+  });
+  };
+</script>
+<%- include('../../../partials/foot-end') %>

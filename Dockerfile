@@ -1,14 +1,28 @@
-FROM node:16-bullseye
+# -- build stage --
+FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends bzip2 \
-    && rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm@9
 
-COPY package*.json ./
-RUN npm install --production
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
+COPY . .
+
+RUN pnpm run build:css
+
+# -- production stage --
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+RUN npm install -g pnpm@9
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+
+COPY --from=build /app/public/css/main.css public/css/main.css
 COPY . .
 
 RUN mkdir -p /app/webdata_tmp
@@ -18,4 +32,4 @@ ENV PORT=8091
 
 EXPOSE 8091
 
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]

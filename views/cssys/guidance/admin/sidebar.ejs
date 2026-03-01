@@ -1,0 +1,67 @@
+<div class="sidebar-menu-inner">
+  <header class="logo-env">
+    <div class="logo">
+      <a class="logo-expanded" href="/cssys/guidance/admin/main">
+        <img src="/cssys/assets/img/logo/logo_main.png" alt="SKKU ICC cssys">
+        <p style="text-align:center;font-weight:bold;">생활지도교수 배정 시스템</p>
+      </a>
+      <a class="logo-collapsed" href="/cssys/guidance/admin/main">
+        <img src="/cssys/assets/img/logo/logo_main_small.png" alt="SKKU ICC cssys">
+      </a>
+    </div>
+    <div class="mobile-menu-toggle visible-xs">
+      <a href="#" data-toggle="mobile-menu"><i class="fa-bars">  생활지도교수 배정 시스템</i></a>
+    </div>
+  </header>
+
+  <ul id="main-menu" class="main-menu">
+    <li class="<%= page=='main' ? 'active' : '' %>">
+      <a href="/cssys/guidance/admin/main"><i class="fa fa-home"></i><span class="title">메인</span></a>
+    </li>
+    <li class="<%= (page=='notice_prof' || page=='notice_student' || page=='example') ? 'active opened' : '' %>">
+      <a href=""><i class="fa fa-star"></i><span class="title">게시판 관리</span></a>
+      <ul>
+        <li class="<%= page=='notice_prof' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/notice_prof/list"><span class="title">교수 페이지 공지사항</span></a>
+        </li>
+        <li class="<%= page=='notice_student' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/notice_student/list"><span class="title">학생 페이지 공지사항</span></a>
+        </li>
+      </ul>
+    </li>
+    <li class="<%= (page=='prof_list' || page=='prof_register' || page=='prof_excel_register') ? 'active opened' : '' %>">
+      <a href=""><i class="fa fa-user"></i><span class="title">교수 관리</span></a>
+      <ul>
+        <li class="<%= page=='prof_list' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/prof_list"><span class="title">교수 현황</span></a>
+        </li>
+        <li class="<%= page=='prof_excel_register' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/prof_excel_register"><span class="title">교수 일괄 등록</span></a>
+        </li>
+        <li class="<%= page=='prof_register' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/prof_register"><span class="title">교수 등록 및 수정</span></a>
+        </li>
+      </ul>
+    </li>
+    <li class="<%= (page=='student_list' || page=='student_register' || page=='student_excel_register') ? 'active opened' : '' %>">
+      <a href=""><i class="fa fa-users"></i><span class="title">학생 관리</span></a>
+      <ul>
+        <li class="<%= page=='student_list' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/student_list"><span class="title">학생 현황</span></a>
+        </li>
+        <li class="<%= page=='student_excel_register' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/student_excel_register"><span class="title">학생 일괄 등록</span></a>
+        </li>
+        <li class="<%= page=='student_register' ? 'active' : '' %>">
+          <a href="/cssys/guidance/admin/student_register"><span class="title">학생 등록 및 수정</span></a>
+        </li>
+      </ul>
+    </li>
+    <li class="<%= page=='assigned_excel_register' ? 'active' : '' %>">
+      <a href="/cssys/guidance/admin/assigned_excel_register"><i class="fa fa-list"></i><span class="title">배정현황 일괄 등록</span></a>
+    </li>
+    <li class="<%= page=='qna' ? 'active' : '' %>">
+      <a href="/cssys/guidance/admin/qna/list"><i class="fa fa-envelope"></i><span class="title">질문 및 답변</span></a>
+    </li>
+  </ul>
+</div>

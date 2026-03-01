@@ -1,7 +1,7 @@
 name: 🚀 New Feature Request
 description: 소프트웨어대학 종합관리시스템(cssys)의 개발할 기능을 작성하세요!
-title: "🚀 [FEAT] "
-labels: ["🚀 Feature"]
+title: '🚀 [FEAT] '
+labels: ['🚀 Feature']
 body:
   - type: textarea
     attributes:

@@ -1,48 +1,74 @@
 {
-  "name": "scg-node-study",
-  "version": "0.0.1",
+  "name": "cse-undergrad-gp-manage",
+  "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www",
+    "build:css": "lessc public/css/main.less public/css/main.css",
+    "watch:css": "nodemon --watch public/css --ext less --exec \"pnpm run build:css\"",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
   },
   "dependencies": {
-    "async": "^0.9.0",
-    "body-parser": "~1.10.0",
-    "child_process": "^1.0.2",
-    "compression": "^1.2.2",
-    "connect-timeout": "^1.4.0",
-    "cookie-parser": "~1.3.3",
-    "debug": "~2.1.0",
-    "dotenv": "^16.4.5",
-    "express": "~4.10.6",
-    "express-mysql-session": "^2.1.0",
-    "express-session": "^1.9.3",
-    "fs": "0.0.1-security",
-    "less-plugin-autoprefix": "^1.4.1",
-    "mkdirp": "^0.5.0",
+    "body-parser": "^1.20.3",
+    "compression": "^1.7.5",
+    "connect-timeout": "^1.9.0",
+    "cookie-parser": "^1.4.7",
+    "debug": "^4.4.0",
+    "dotenv": "^16.4.7",
+    "ejs": "^4.0.1",
+    "express": "^4.21.2",
+    "express-mysql-session": "^3.0.3",
+    "express-session": "^1.18.1",
     "minio": "^8.0.6",
-    "moment": "^2.24.0",
-    "moment-timezone": "^0.5.27",
-    "morgan": "~1.5.0",
-    "multer": "^0.1.6",
-    "mysql": "^2.17.1",
-    "node-cron": "^2.0.3",
-    "node-schedule": "^0.2.6",
-    "node-xlsx": "^0.5.1",
-    "phantom": "^4.0.12",
-    "sequelize": "^2.0.5",
-    "sequelize-cli": "^1.5.0",
-    "sha256": "^0.1.1",
-    "swig": "~1.4.2"
+    "mkdirp": "^3.0.1",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.46",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.12.0",
+    "node-cron": "^3.0.3",
+    "node-schedule": "^2.1.1",
+    "node-xlsx": "^0.24.0",
+    "sequelize": "^6.37.5"
   },
   "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-less": "^1.0.1",
-    "grunt-contrib-watch": "~0.6.1",
-    "grunt-develop": "~0.4.0",
-    "less-plugin-clean-css": "^1.5.0",
-    "load-grunt-tasks": "~1.0.0",
-    "request": "~2.51.0",
-    "time-grunt": "~1.0.0"
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.1",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "less": "^4.2.2",
+    "lint-staged": "^16.2.7",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.3"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "routes/**/*.js",
+      "lib/**/*.js",
+      "config/**/*.js",
+      "models/**/*.js",
+      "middleware.js",
+      "!**/node_modules/**"
+    ]
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,less,css}": [
+      "prettier --write"
+    ]
   }
 }

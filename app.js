@@ -5,7 +5,6 @@ process.setMaxListeners(100);
 
 // 필요 모둘 임포트
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -13,9 +12,7 @@ const bodyParser = require('body-parser');
 const compression = require('compression');
 const timeout = require('connect-timeout');
 const session = require('express-session');
-const multer = require('multer');
-const swig = require('swig');
-const moment = require('moment-timezone')
+const moment = require('moment-timezone');
 
 // express session production store
 const MySQLStore = require('express-mysql-session')(session);
@@ -23,7 +20,7 @@ const config = require('./config');
 const sessionSecret = process.env.SESSION_SECRET || (config.session && config.session.secret);
 
 if (!sessionSecret) {
-    throw new Error('SESSION_SECRET must be set');
+  throw new Error('SESSION_SECRET must be set');
 }
 
 const app = express();
@@ -37,73 +34,62 @@ const sessionStore = new MySQLStore({
   clearExpired: true,
   expiration: 4 * 60 * 60 * 1000, // 4시간
   checkExpirationInterval: 4 * 60 * 60 * 1000, // 4시간 마다 만료된 세션 지움
-  createDatabaseTable: true
+  createDatabaseTable: true,
 });
 
-
 // 뷰 엔진 셋업
-app.engine('swig', swig.renderFile);
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'swig');
+app.set('view engine', 'ejs');
+
+// Pug date filter helper using moment
+app.locals.formatDate = function (date, format, offset) {
+  if (!date) return '';
+  var m = moment(date);
+  if (offset !== undefined) m = m.utcOffset(offset);
+  return m.format(format || 'YYYY-MM-DD');
+};
 
 // express 환경 셋업
 app.use(timeout('30s'));
 // morgan log 설정
-app.enable("trust proxy");
+app.enable('trust proxy');
 logger.token('User', (req, res) => {
-  return !(req.session) ? 'Source' : (req.session.user == undefined) ? 'Guest': (req.session.user.ids);
+  return !req.session ? 'Source' : req.session.user == undefined ? 'Guest' : req.session.user.ids;
 });
 logger.token('Date', (req, res, tz) => {
-  return moment().tz(tz).format('YYYY-MM-DD HH:mm:ss Z')
-})
-logger.format('SCG', '[:User] :remote-addr [:Date[Asia/Seoul]] ":method :url HTTP/:http-version" :status :res[content-length] ":user-agent" - :response-time ms');
+  return moment().tz(tz).format('YYYY-MM-DD HH:mm:ss Z');
+});
+logger.format(
+  'SCG',
+  '[:User] :remote-addr [:Date[Asia/Seoul]] ":method :url HTTP/:http-version" :status :res[content-length] ":user-agent" - :response-time ms',
+);
 app.use(logger('SCG'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  }),
+);
 app.use(cookieParser());
 app.use('/cssys', express.static(path.join(__dirname, 'public'))); // public 폴더 static 라우팅
 app.use('/cssys/assets', express.static(path.join(__dirname, 'assets')));
 app.use(compression());
-app.use(session({
+app.use(
+  session({
     secret: sessionSecret,
     store: sessionStore,
     proxy: true,
     resave: true,
     saveUninitialized: true,
-    cookie: { maxAge: 3 * 60 * 60 * 1000 } // 세션 유지 3시간
-}));
-app.use(multer({
-    dest: './webdata_tmp/', // 업로드된 파일 임시경로
-    //inMemory: true,
-    limits: {
-        fileSize: 1024 * 1024 * 100, // 업로드 용량 100메가 제한
-        //        files: 1, // 파일, 필드, 파트도 1메가 제한
-        //        fields: 1,
-        //        parts: 1
-    },
-    onFileSizeLimit: function(file) {
-        try {
-            fs.unlinkSync(file.path);
-        } catch (err) {}
-        file.isFileSizeLimit = true;
-        return file;
-    }
-}));
+    cookie: { maxAge: 3 * 60 * 60 * 1000 }, // 세션 유지 3시간
+  }),
+);
 
-// 뷰 엔진 셋업 ( 세션 떄문에 )
-app.use(function(req, res, next) { // 이거 cssys 로그인 된 모든페이지 렌더링에서 session 값 가져오려는건데 엄청 비효율적일수도 있음
-    swig.setDefaults({
-        cache: false,
-        locals: {
-            env: app.get('env'),
-            session: function() {
-                return req.session;
-            }
-        }
-    });
-    next();
+// Pass env and session to all views (replaces swig.setDefaults)
+app.use(function (req, res, next) {
+  res.locals.env = app.get('env');
+  res.locals.session = req.session;
+  next();
 });
 
 // 컨트롤러 라우팅 셋업
@@ -130,26 +116,33 @@ app.use('/cssys/guidance/student', require('./routes/cssys_guidance/student'));
 /// error handlers
 
 /// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+app.use(function (req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
 
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    if (err.status == 404) {
-        res.send('Page Not Found')
-    } else {
-        res.render('error', {
-            message: err.message,
-            error: {},
-            title: 'error'
-        });
-    }
-});
+app.use(function (err, req, res, next) {
+  const status = err.status || 500;
+  const isDev = req.app.get('env') === 'development';
+  const now = moment().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss Z');
 
+  // Always log server-side stack trace for debugging 5xx errors.
+  if (status >= 500) {
+    console.error(`[${now}] [ERROR] ${req.method} ${req.originalUrl}`);
+    console.error(err && err.stack ? err.stack : err);
+  }
+
+  res.status(status);
+  if (err.status == 404) {
+    res.send('Page Not Found');
+  } else {
+    res.render('error', {
+      message: err.message,
+      error: isDev ? err : {},
+      title: 'error',
+    });
+  }
+});
 
 module.exports = app;
