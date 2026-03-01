@@ -449,7 +449,7 @@ router.get('/prof_excel_register', function (req, res, next) {
 });
 router.post('/prof_excel_register', upload.single('file'), async function (req, res, next) {
   try {
-    obj = xlsx.parse(req.file.path);
+    var obj = xlsx.parse(req.file.path);
     fs.unlinkSync(req.file.path);
 
     obj[0].data.shift(); // 첫번째 행 삭제;
@@ -463,11 +463,11 @@ router.post('/prof_excel_register', upload.single('file'), async function (req, 
         var userTmp = {
           ids: data[0],
           type: 1,
-          time: req.body.time,
-          ip: req.body.ip,
+          time: new Date(),
+          ip: req.ip,
           Prof: {
-            time: req.body.time,
-            ip: req.body.ip,
+            time: new Date(),
+            ip: req.ip,
           },
         };
 
@@ -487,6 +487,7 @@ router.post('/prof_excel_register', upload.single('file'), async function (req, 
           }
         } catch (err) {
           errFlag = true;
+          console.error('[prof_excel_register][guidance] parse error:', data && data[0], err);
           text += '[ ' + data[0] + ' ] 유저 데이터 파싱에서 문제가 발생하였습니다.\n';
         }
         if (!errFlag) {
@@ -499,36 +500,47 @@ router.post('/prof_excel_register', upload.single('file'), async function (req, 
             });
             if (user === null) {
               // 아이디 없을시 생성
+              if (!userTmp.password) {
+                text += '[ ' + data[0] + ' ] 비밀번호가 없어 신규 계정을 생성할 수 없습니다.\n';
+                continue;
+              }
               try {
                 var newUser = await models.User.create(userTmp);
                 try {
                   await newUser.createProf(userTmp.Prof);
                   insertCount++;
                 } catch (errors) {
+                  console.error('[prof_excel_register][guidance] createProf error:', data && data[0], errors);
                   await newUser.destroy();
                   text += '[ ' + data[0] + ' ] 유저의 교수정보 생성에서 문제가 발생하였습니다.\n';
                 }
               } catch (errors) {
+                console.error('[prof_excel_register][guidance] create user error:', data && data[0], errors);
                 text += '[ ' + data[0] + ' ] 유저 생성에서 문제가 발생하였습니다.\n';
               }
             } else {
               // 아이디 존재함, 업데이트
               for (var key in userTmp) {
                 if (key == 'Prof') {
-                  for (var key_2 in userTmp.Prof) {
-                    user.Prof[key_2] = userTmp.Prof[key_2];
+                  if (user.Prof) {
+                    for (var key_2 in userTmp.Prof) {
+                      user.Prof[key_2] = userTmp.Prof[key_2];
+                    }
                   }
                 } else user[key] = userTmp[key];
               }
               try {
                 await user.save();
                 try {
-                  await user.Prof.save();
+                  if (user.Prof) await user.Prof.save();
+                  else await user.createProf(userTmp.Prof);
                   updateCount++;
                 } catch (errors) {
+                  console.error('[prof_excel_register][guidance] update prof error:', data && data[0], errors);
                   text += '[ ' + data[0] + ' ] 유저의 학생정보 수정에서 문제가 발생하였습니다.\n';
                 }
               } catch (errors) {
+                console.error('[prof_excel_register][guidance] update user error:', data && data[0], errors);
                 text += '[ ' + data[0] + ' ] 유저 수정에서 문제가 발생하였습니다.\n';
               }
               /* 에러나서 위 루틴으로 바꿈 (원인은 모르겠음)
@@ -544,6 +556,7 @@ router.post('/prof_excel_register', upload.single('file'), async function (req, 
                             */
             }
           } catch (e) {
+            console.error('[prof_excel_register][guidance] row error:', data && data[0], e);
             text += '[ ' + data[0] + ' ] 처리 중 오류가 발생하였습니다.\n';
           }
         }
@@ -556,6 +569,7 @@ router.post('/prof_excel_register', upload.single('file'), async function (req, 
       text: text,
     });
   } catch (err) {
+    console.error('[prof_excel_register][guidance] fatal error:', err);
     res.send({
       result: false,
       text: '잘못된 파일 입니다.',
@@ -1063,7 +1077,7 @@ router.get('/student_excel_register', function (req, res, next) {
 });
 router.post('/student_excel_register', upload.single('file'), async function (req, res, next) {
   try {
-    obj = xlsx.parse(req.file.path);
+    var obj = xlsx.parse(req.file.path);
     fs.unlinkSync(req.file.path);
 
     obj[0].data.shift(); // 첫번째 행 삭제;
@@ -1077,11 +1091,11 @@ router.post('/student_excel_register', upload.single('file'), async function (re
         var userTmp = {
           ids: data[0],
           type: 2,
-          time: req.body.time,
-          ip: req.body.ip,
+          time: new Date(),
+          ip: req.ip,
           Student: {
-            time: req.body.time,
-            ip: req.body.ip,
+            time: new Date(),
+            ip: req.ip,
           },
         };
 
