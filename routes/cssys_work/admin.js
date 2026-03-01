@@ -246,19 +246,21 @@ router.get('/student_list/excel/:id', async function (req, res, next) {
       include: [
         {
           model: models.Student,
+          required: true,
           include: [
             {
               model: models.Prof,
               where: {
                 UserId: req.params.id,
               },
+              required: true,
             },
             models.System,
           ],
         },
       ],
       order: [
-        ['SystemId', 'ASC'],
+        [models.Student, 'SystemId', 'ASC'],
         ['ids', 'ASC'],
       ],
     });
@@ -327,27 +329,32 @@ router.post('/prof/:id/ajax/get_students', async function (req, res, next) {
       include: [
         {
           model: models.Student,
+          required: true,
           include: [
             {
               model: models.Prof,
               where: {
                 UserId: req.params.id,
               },
+              required: true,
             },
             models.System,
           ],
         },
       ],
       order: [
-        ['SystemId', 'ASC'],
+        [models.Student, 'SystemId', 'ASC'],
         ['ids', 'ASC'],
       ],
     });
     var index = 1;
     users.forEach(function (user) {
+      if (!user.Student) return;
       user.dataValues.index = index++;
-      user.Student.System.dataValues.isNow =
-        new Date() > user.Student.System.start && new Date() < user.Student.System.end;
+      if (user.Student.System) {
+        user.Student.System.dataValues.isNow =
+          new Date() > user.Student.System.start && new Date() < user.Student.System.end;
+      }
       let a = user.Student.dataValues.state;
       //[1의 자리=제안서, 10의 자리=중간보고서, 100의자리=최종보고서]
       user.Student.dataValues.state = [a % 10, parseInt((a % 100) / 10), parseInt(a / 100)];
