@@ -315,7 +315,7 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
           if (data[0].notice) {
             // 공지사항 일경우
             var nextData = await models.sequelize.query(
-              'select Post.id,Post.title from ((select * from cssys_board_post where BoardId=:BoardId and id<:PostId and notice order by id desc limit 0,1) union (select * from cssys_board_post where BoardId=:BoardId and ParentId is null order by id desc limit 0,1)) as Post',
+              'select Post.id,Post.title from ((select * from cssys_board_post where BoardId=:BoardId and id < :PostId and notice order by id desc limit 0,1) union (select * from cssys_board_post where BoardId=:BoardId and ParentId is null order by id desc limit 0,1)) as Post',
               {
                 replacements: {
                   BoardId: board.id,
@@ -333,7 +333,7 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
                 'select id from (' +
                   '(select * from cssys_board_post where ParentId=:ParentId and id>:PostId ' +
                   ' order by id limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=:BoardId and id<:ParentId ' +
+                  '(select * from cssys_board_post where BoardId=:BoardId and id < :ParentId ' +
                   ' and !notice and ParentId is null order by id desc limit 0,1)' +
                   ') as post limit 0,1',
                 {
@@ -352,7 +352,7 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
                 'select id from (' +
                   '(select * from cssys_board_post where ParentId=:PostId ' +
                   ' order by id limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=:BoardId and id<:PostId ' +
+                  '(select * from cssys_board_post where BoardId=:BoardId and id < :PostId ' +
                   ' and !notice and ParentId is null order by id desc limit 0,1)' +
                   ') as post limit 0,1',
                 {

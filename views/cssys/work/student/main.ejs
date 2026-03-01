@@ -552,8 +552,12 @@
               </h2>
               <blockquote>
                 <p>지도 교수 승인 및 반려 기간은 <%= systems[12].end__ %> 까지 입니다.</p>
+                <% if (student.oath) { %>
                 <p>서약서 파일명 : <b><%= student.oath.name %></b></p>
+                <% } %>
+                <% if (student.proposal) { %>
                 <p>제안서 파일명 : <b><%= student.proposal.name %></b></p>
+                <% } %>
                 <% if (state[0]==1) { %>
                 <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
                 <% } else if (state[0]==2) { %>
@@ -640,16 +644,24 @@
               <% } else { %>
                 <blockquote>
                   <p>서약서 및 제안서 제출이 완료되었습니다.</p>
+                  <% if (student.oath) { %>
                   <p>서약서 파일명 : <b><%= student.oath.name %></b></p>
+                  <% } %>
+                  <% if (student.proposal) { %>
                   <p>제안서 파일명 : <b><%= student.proposal.name %></b></p>
+                  <% } %>
                   <% if (state[0]==1) { %>
                   <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
                   <% } else if (state[0]==2) { %>
                   <span style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</span>
                   <% } %>
                 </blockquote>
+                <% if (student.oath) { %>
                 <a href="<%= student.oath.link %>" class="btn btn-info">서약서 다운로드</a>
+                <% } %>
+                <% if (student.proposal) { %>
                 <a href="<%= student.proposal.link %>" class="btn btn-info">제안서 다운로드</a>
+                <% } %>
               <% } %>
             </div>
           </li>
@@ -771,7 +783,9 @@
               </h2>
               <blockquote>
                 <p>지도 교수 승인 및 반려 기간은 <%= systems[14].end__ %> 까지 입니다.</p>
+                <% if (student.midreport) { %>
                 <p>중간보고서 파일명 : <b><%= student.midreport.name %></b></p>
+                <% } %>
                 <% if (state[1]==1) { %>
                 <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
                 <% } else if (state[1]==2) { %>
@@ -853,14 +867,18 @@
               </h2>
               <blockquote>
                 <p>중간보고서 제출이 완료되었습니다.</p>
+                <% if (student.midreport) { %>
                 <span>파일명 : <b><%= student.midreport.name %></b></span>
+                <% } %>
                 <% if (state[1]==1) { %>
                 <span style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</span>
                 <% } else if (state[1]==2) { %>
                 <span style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</span>
                 <% } %>
               </blockquote>
+              <% if (student.midreport) { %>
               <a href="<%= student.midreport.link %>" class="btn btn-info">다운로드</a>
+              <% } %>
             </div>
           </li>
         <% } else { %>
@@ -1021,20 +1039,36 @@
               </h2>
               <blockquote>
                 <p>최종보고서 및 논문/작품, 교내 발표자료 제출이 완료되었습니다.</p>
+                <% if (student.finalreport) { %>
                 <span>최종보고서 파일명 : <b><%= student.finalreport.name %></b></span>
+                <% } %>
                 <% if (state[2]==1) { %>
                 <p style="color: #68b828; font-weight: bold; font-size: 15px;"> : 승인됨</p>
                 <% } else if (state[2]==2) { %>
                 <p style="color: red; font-weight: bold; font-size: 15px;"> : 반려됨</p>
                 <% } %>
+                <% if (student.paperwork) { %>
                 <p>논문/작품 파일명 : <b><%= student.paperwork.name %></b></p>
+                <% } %>
+                <% if (student.presentation) { %>
                 <p>교내 발표자료 파일명 : <b><%= student.presentation.name %></b></p>
+                <% } %>
+                <% if (student.conference) { %>
                 <p>학회 발표증빙자료 파일명 : <b><%= student.conference.name %></b></p>
+                <% } %>
               </blockquote>
+              <% if (student.finalreport) { %>
               <a href="<%= student.finalreport.link %>" class="btn btn-info">최종보고서 다운로드</a>
+              <% } %>
+              <% if (student.paperwork) { %>
               <a href="<%= student.paperwork.link %>" class="btn btn-info">논문/작품 다운로드</a>
+              <% } %>
+              <% if (student.presentation) { %>
               <a href="<%= student.presentation.link %>" class="btn btn-info">교내 발표자료 다운로드</a>
+              <% } %>
+              <% if (student.conference) { %>
               <a href="<%= student.conference.link %>" class="btn btn-info">학회 발표증빙자료 다운로드</a>
+              <% } %>
             </div>
           </li>
         <% } else { %>
