@@ -158,10 +158,14 @@ router.post('/ajax/board/list/:title', async function (req, res, next) {
         'select BoardPost.id,BoardPost.title,BoardPost.text,BoardPost.secret,BoardPost.views,BoardPost.time,User.name from ' +
           'cssys_board_post as BoardPost left join ' +
           'cssys_user as User on BoardPost.UserId=User.id ' +
-          'where BoardPost.BoardId=' +
-          board.id +
+          'where BoardPost.BoardId=:BoardId ' +
           ' and BoardPost.notice=0 and BoardPost.ParentId is null ' +
           'order by BoardPost.id desc',
+        {
+          replacements: {
+            BoardId: board.id,
+          },
+        },
       );
       var index = data[0].length;
       data[0].forEach(function (post) {
@@ -178,10 +182,14 @@ router.post('/ajax/board/list/:title', async function (req, res, next) {
         'select BoardPost.ParentId,BoardPost.id,BoardPost.title,BoardPost.text,BoardPost.secret,BoardPost.views,BoardPost.time,User.name from ' +
           'cssys_board_post as BoardPost left join ' +
           'cssys_user as User on BoardPost.UserId=User.id ' +
-          'where BoardPost.BoardId=' +
-          board.id +
+          'where BoardPost.BoardId=:BoardId ' +
           ' and BoardPost.notice=0 and BoardPost.ParentId is not null ' +
           'order by BoardPost.id desc',
+        {
+          replacements: {
+            BoardId: board.id,
+          },
+        },
       );
       data2[0].forEach(function (post) {
         var idx;
@@ -249,11 +257,13 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
           if (data[0].notice) {
             // 공지사항 일경우
             var prevData = await models.sequelize.query(
-              'select id,title from cssys_board_post where BoardId=' +
-                board.id +
-                ' and id>' +
-                data[0].id +
-                ' and notice order by id limit 0,1',
+              'select id,title from cssys_board_post where BoardId=:BoardId and id>:PostId and notice order by id limit 0,1',
+              {
+                replacements: {
+                  BoardId: board.id,
+                  PostId: data[0].id,
+                },
+              },
             );
             prev = prevData[0][0] ? prevData[0][0] : null;
           } else {
@@ -263,19 +273,18 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
               // 2. 현재 부모글
               var prevData = await models.sequelize.query(
                 'select id from (' +
-                  '(select * from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and ParentId=' +
-                  data[0].ParentId +
-                  ' and id < ' +
-                  data[0].id +
+                  '(select * from cssys_board_post where BoardId=:BoardId and ParentId=:ParentId and id < :PostId ' +
                   ' order by id desc limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and id=' +
-                  data[0].ParentId +
+                  '(select * from cssys_board_post where BoardId=:BoardId and id=:ParentId ' +
                   ')' +
                   ') as post limit 0,1',
+                {
+                  replacements: {
+                    BoardId: board.id,
+                    ParentId: data[0].ParentId,
+                    PostId: data[0].id,
+                  },
+                },
               );
               prev = prevData[0][0] ? prevData[0][0] : null;
             } else {
@@ -284,20 +293,18 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
               // 3. 공지사항 마지막 글
               var prevData = await models.sequelize.query(
                 'select id from (' +
-                  '(select * from cssys_board_post where ParentId=(select id from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and Id>' +
-                  data[0].id +
+                  '(select * from cssys_board_post where ParentId=(select id from cssys_board_post where BoardId=:BoardId and Id>:PostId ' +
                   ' order by id limit 0,1) order by id desc limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and Id>' +
-                  data[0].id +
+                  '(select * from cssys_board_post where BoardId=:BoardId and Id>:PostId ' +
                   ' and !notice and ParentId is null order by id limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and notice order by id limit 0,1)' +
+                  '(select * from cssys_board_post where BoardId=:BoardId and notice order by id limit 0,1)' +
                   ') as post limit 0,1',
+                {
+                  replacements: {
+                    BoardId: board.id,
+                    PostId: data[0].id,
+                  },
+                },
               );
               prev = prevData[0][0] ? prevData[0][0] : null;
             }
@@ -308,13 +315,13 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
           if (data[0].notice) {
             // 공지사항 일경우
             var nextData = await models.sequelize.query(
-              'select Post.id,Post.title from ((select * from cssys_board_post where BoardId=' +
-                board.id +
-                ' and id<' +
-                data[0].id +
-                ' and notice order by id desc limit 0,1) union (select * from cssys_board_post where BoardId=' +
-                board.id +
-                ' and ParentId is null order by id desc limit 0,1)) as Post',
+              'select Post.id,Post.title from ((select * from cssys_board_post where BoardId=:BoardId and id<:PostId and notice order by id desc limit 0,1) union (select * from cssys_board_post where BoardId=:BoardId and ParentId is null order by id desc limit 0,1)) as Post',
+              {
+                replacements: {
+                  BoardId: board.id,
+                  PostId: data[0].id,
+                },
+              },
             );
             nextPost = nextData[0][0] ? nextData[0][0] : null;
           } else {
@@ -324,17 +331,18 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
               // 2. 다음글 (공지사항,답변글 아닌거) (부모글기준)
               var nextData = await models.sequelize.query(
                 'select id from (' +
-                  '(select * from cssys_board_post where ParentId=' +
-                  data[0].ParentId +
-                  ' and id>' +
-                  data[0].id +
+                  '(select * from cssys_board_post where ParentId=:ParentId and id>:PostId ' +
                   ' order by id limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and id<' +
-                  data[0].ParentId +
+                  '(select * from cssys_board_post where BoardId=:BoardId and id<:ParentId ' +
                   ' and !notice and ParentId is null order by id desc limit 0,1)' +
                   ') as post limit 0,1',
+                {
+                  replacements: {
+                    BoardId: board.id,
+                    ParentId: data[0].ParentId,
+                    PostId: data[0].id,
+                  },
+                },
               );
               nextPost = nextData[0][0] ? nextData[0][0] : null;
             } else {
@@ -342,15 +350,17 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
               // 2. 다음글 (공지사항,답변글 아닌거)
               var nextData = await models.sequelize.query(
                 'select id from (' +
-                  '(select * from cssys_board_post where ParentId=' +
-                  data[0].id +
+                  '(select * from cssys_board_post where ParentId=:PostId ' +
                   ' order by id limit 0,1) union ' +
-                  '(select * from cssys_board_post where BoardId=' +
-                  board.id +
-                  ' and id<' +
-                  data[0].id +
+                  '(select * from cssys_board_post where BoardId=:BoardId and id<:PostId ' +
                   ' and !notice and ParentId is null order by id desc limit 0,1)' +
                   ') as post limit 0,1',
+                {
+                  replacements: {
+                    BoardId: board.id,
+                    PostId: data[0].id,
+                  },
+                },
               );
               nextPost = nextData[0][0] ? nextData[0][0] : null;
             }
@@ -358,11 +368,13 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
 
           // files
           var filesData = await models.sequelize.query(
-            'select name,path,type,size,downs from cssys_board_file where BoardId=' +
-              board.id +
-              ' and BoardPostId=' +
-              data[0].id +
-              ' order by id limit 0,2',
+            'select name,path,type,size,downs from cssys_board_file where BoardId=:BoardId and BoardPostId=:PostId order by id limit 0,2',
+            {
+              replacements: {
+                BoardId: board.id,
+                PostId: data[0].id,
+              },
+            },
           );
           var files = filesData[0];
           if (files !== null) {
@@ -373,7 +385,13 @@ router.post('/ajax/board/view/:title/:id', async function (req, res, next) {
           }
 
           await models.sequelize.query(
-            'update cssys_board_post set views=views+1 where BoardId=' + board.id + ' and id=' + data[0].id,
+            'update cssys_board_post set views=views+1 where BoardId=:BoardId and id=:PostId',
+            {
+              replacements: {
+                BoardId: board.id,
+                PostId: data[0].id,
+              },
+            },
           );
           data[0].time = moment(data[0].time).format('YYYY-MM-DD HH:mm:ss');
           data[0].views++;

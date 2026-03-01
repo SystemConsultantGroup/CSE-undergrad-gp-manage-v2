@@ -972,6 +972,8 @@ router.post('/student_register/ajax/get_student', function (req, res, next) {
 router.post('/student_register', function (req, res, next) {
   // guidance student table이랑 work student table update or create
   req.body.type = 2;
+  req.body.time = new Date();
+  req.body.ip = req.ip;
   if (req.body.id) {
     // 수정일경우
     models.User.findOne({
@@ -1006,6 +1008,7 @@ router.post('/student_register', function (req, res, next) {
     });
   } else {
     // 추가일경우
+    delete req.body.id;
     models.User.findOne({
       where: {
         ids: req.body.ids,

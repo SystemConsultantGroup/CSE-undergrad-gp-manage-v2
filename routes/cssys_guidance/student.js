@@ -50,6 +50,10 @@ router.get('/main', async function (req, res, next) {
       },
     ],
   });
+  if (!user) {
+    res.redirect('/cssys/logout');
+    return;
+  }
   // console.log("asdf", user.Student.Prof);
 
   let pLog = []; // 교수랑 컨택한 적이 없을 경우 []를 보냄
@@ -256,7 +260,7 @@ router.all('/system/ajax/permission', async function (req, res, next) {
         },
       ],
     });
-    if (user !== null) {
+    if (user && user.Student && user.Student.System) {
       /*
             // Sequelize아래 경우 student * firstPermissions * secondPermissions * thirdPermissions 갯수만큼 가져와서 합치는 거라
             // 부하가 엄청 심함 (Sequelize가 join을 outer로해서 통합하는듯...)
@@ -339,6 +343,7 @@ router.all('/system/ajax/permission', async function (req, res, next) {
       var data = [];
 
       for (var u of users) {
+        if (!u.Prof) continue;
         var selected = await models.Student.count({
           where: {
             ProfId: u.Prof.id,
@@ -428,7 +433,7 @@ router.post('/system/proc/permission', async function (req, res, next) {
         },
       ],
     });
-    if (user !== null) {
+    if (user && user.Student && user.Student.System) {
       if (
         (user.Student.System.id == 3 || user.Student.System.id == 5 || user.Student.System.id == 7) &&
         new Date() > user.Student.System.start &&

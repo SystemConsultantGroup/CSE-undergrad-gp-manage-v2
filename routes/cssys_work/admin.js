@@ -1066,6 +1066,8 @@ router.post('/student_register/ajax/get_student', async function (req, res, next
 router.post('/student_register', async function (req, res, next) {
   try {
     req.body.type = 2;
+    req.body.time = new Date();
+    req.body.ip = req.ip;
     if (!req.body.ProfId) req.body.ProfId = null;
     if (req.body.id) {
       // 수정일경우

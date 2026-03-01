@@ -69,6 +69,10 @@ router.get('/main', async (req, res) => {
     ],
     attributes: ['ids', 'name', 'email', 'phone', 'type', 'major', 'ip'],
   });
+  if (!Prof_data || !Prof_data.Prof) {
+    res.redirect('/cssys/logout');
+    return;
+  }
 
   const Prof_student_List = await models.Student.findAll({
     // 자신에게 신청한 학생들 목록
@@ -209,6 +213,10 @@ router.get('/permission', async (req, res, next) => {
       UserId: req.session.user.id,
     },
   });
+  if (!Prof) {
+    res.redirect('/cssys/logout');
+    return;
+  }
   const Prof_id = Prof.dataValues.id;
 
   const student = await models.GPermissionLog.findAll({
@@ -736,6 +744,10 @@ router.post('/acpt', async function (req, res) {
       },
     ],
   });
+  if (!userdata || !userdata.Prof) {
+    res.send({ result: false, text: '교수 정보가 없습니다.' });
+    return;
+  }
 
   // 2. 학생 데이터 status 업데이트( * -> 0) 해제 상태
   await models.Student.update(
@@ -773,6 +785,10 @@ router.post('/reject', async function (req, res) {
       },
     ],
   });
+  if (!userdata || !userdata.Prof) {
+    res.send({ result: false, text: '교수 정보가 없습니다.' });
+    return;
+  }
 
   // 2. 학생 데이터 status 업데이트( * -> 0) 해제 상태
   await models.Student.update(
@@ -814,6 +830,10 @@ router.get('/connection', async (req, res) => {
       UserId: req.session.user.id,
     },
   });
+  if (!ProfId) {
+    res.send([]);
+    return;
+  }
   const Prof_id = ProfId.dataValues.id;
 
   const Students = await models.Student.findAll({
@@ -962,6 +982,10 @@ router.post('/stu_list', async (req, res) => {
     },
     attributes: ['id'],
   });
+  if (!ProfId) {
+    res.send({ aaData: [] });
+    return;
+  }
   const Logs = await models.GPermissionLog.findAll({
     where: {
       resorreq: 'req',
@@ -983,6 +1007,9 @@ router.post('/stu_list', async (req, res) => {
         attributes: ['id', 'StudentId', 'createdAt', 'ProfId'],
         order: [['createdAt', 'DESC']],
       });
+      if (!log) {
+        return null;
+      }
       if (log.ProfId == ProfId.id) {
         cnt += 1;
         const student = await models.Student.findOne({
@@ -1029,6 +1056,9 @@ router.post('/stu_list', async (req, res) => {
         attributes: ['id', 'StudentId', 'createdAt', 'ProfId', 'text'],
         order: [['createdAt', 'DESC']],
       });
+      if (!log) {
+        return null;
+      }
       if (log.ProfId == ProfId.id) {
         cnt += 1;
         const student = await models.Student.findOne({
@@ -1096,6 +1126,10 @@ router.get('/stu_assigned', async (req, res) => {
     },
     attributes: ['id'],
   });
+  if (!prof_id) {
+    res.send({ aaData: [] });
+    return;
+  }
   const Profid = prof_id.dataValues.id; // Profid: prof 테이블의 id
 
   // 1. 배정 완료된 학생 정보 불러오기

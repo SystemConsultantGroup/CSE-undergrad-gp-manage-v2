@@ -94,7 +94,7 @@ router.get('/main', async function (req, res, next) {
         },
       ],
     });
-    if (user !== null) {
+    if (user && user.Student && user.Student.System) {
       var systems = await models.System.findAll();
       systems.forEach(function (system) {
         system.start_ = moment(system.start).format('YYYY-MM-DD');
@@ -214,7 +214,7 @@ router.get('/system', async function (req, res, next) {
         },
       ],
     });
-    if (user !== null) {
+    if (user && user.Student && user.Student.System) {
       if (user.Student.status === 0 || user.Student.status === 2) {
         if (user.Student.islock) {
           res.render('cssys/work/student/system_term_lock', {
@@ -306,7 +306,7 @@ router.get('/system/application', async function (req, res, next) {
         },
       ],
     });
-    if (user && user.Student) {
+    if (user && user.Student && user.Student.System) {
       //로그인 세션이 학생인지 체크
       if (user.Student.status === 1) {
         res.render('cssys/work/student/system_status_1');
@@ -403,7 +403,7 @@ router.all('/system/ajax/permission', async function (req, res, next) {
         },
       ],
     });
-    if (user !== null) {
+    if (user && user.Student && user.Student.System) {
       var users = await models.User.findAll({
         order: [['name', 'ASC']],
         where: {
@@ -420,6 +420,7 @@ router.all('/system/ajax/permission', async function (req, res, next) {
       var data = [];
 
       for (const u of users) {
+        if (!u.Prof) continue;
         var selected = await models.Student.count({
           where: {
             ProfId: u.Prof.id,
@@ -509,7 +510,7 @@ router.post('/system/proc/permission', async function (req, res, next) {
         },
       ],
     });
-    if (user !== null) {
+    if (user && user.Student && user.Student.System) {
       if (
         (user.Student.System.id == 3 || user.Student.System.id == 5 || user.Student.System.id == 7) &&
         new Date() > user.Student.System.start &&
@@ -633,7 +634,7 @@ router.post(
           },
         ],
       });
-      if (user !== null) {
+      if (user && user.Student && user.Student.System) {
         if (
           (user.Student.System.id == 9 &&
             new Date() > user.Student.System.start &&
@@ -743,7 +744,7 @@ router.post(
           },
         ],
       });
-      if (user !== null) {
+      if (user && user.Student && user.Student.System) {
         if (
           (user.Student.System.id == 10 &&
             new Date() > user.Student.System.start &&
@@ -833,7 +834,7 @@ router.post(
           },
         ],
       });
-      if (user !== null) {
+      if (user && user.Student && user.Student.System) {
         if (
           (user.Student.System.id == 11 &&
             new Date() > user.Student.System.start &&
