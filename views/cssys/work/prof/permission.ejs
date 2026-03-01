@@ -96,7 +96,11 @@
                 </thead>
                 <tbody>
                   <% if (permissions.length) { %>
-                    <% permissions.forEach(function(permission, index) { %>
+                    <% permissions.forEach(function(permission, index) {
+                      var firstProfUserId = permission.firstProf && permission.firstProf.User ? permission.firstProf.User.id : null;
+                      var secondProfUserId = permission.secondProf && permission.secondProf.User ? permission.secondProf.User.id : null;
+                      var thirdProfUserId = permission.thirdProf && permission.thirdProf.User ? permission.thirdProf.User.id : null;
+                    %>
                       <tr>
                         <th><%= index + 1 %></th>
                         <td><%= permission.Student.User.ids %></td>
@@ -109,20 +113,20 @@
                             <button class="btn btn-white btn-xs" disabled>미제출</button>
                           <% } %>
                         </td>
-                        <% if (permission.firstProf.User.id != user.id) { %>
+                        <% if (firstProfUserId != user.id) { %>
                           <td class="_exp" >비공개</td>
                         <% } else { %>
                           <td><%= permission.firstProf.User.name %></td>
                         <% } %>
                         <td>
-                          <% if (permission.firstProf.User.id == user.id && permission.firstSelected || permission.secondProf.User.id == user.id && permission.secondSelected || permission.thirdProf.User.id == user.id && permission.thirdSelected) { %>
+                          <% if (firstProfUserId == user.id && permission.firstSelected || secondProfUserId == user.id && permission.secondSelected || thirdProfUserId == user.id && permission.thirdSelected) { %>
                             <button class="btn btn-blue btn-xs">선택됨</button>
-                          <% } else if (permission.firstProf.User.id != user.id && permission.firstSelected) { %>
+                          <% } else if (firstProfUserId != user.id && permission.firstSelected) { %>
                             <button class="btn btn-success btn-xs" disabled>선택</button>
-                          <% } else if (permission.firstProf.User.id != user.id && permission.secondProf.User.id != user.id && permission.secondSelected) { %>
+                          <% } else if (firstProfUserId != user.id && secondProfUserId != user.id && permission.secondSelected) { %>
                             <button class="btn btn-success btn-xs" disabled>선택</button>
                           <% } else { %>
-                            <% if (permission.firstProf.User.id == user.id) { %>
+                            <% if (firstProfUserId == user.id) { %>
                               <button class="btn btn-success btn-xs" onclick="submit_proc(<%= permission.id %>,1,<%= permission.Student.User.major %>)">선택</button>
                             <% } else { %>
                               <button class="btn btn-success btn-xs" onclick="submit_proc(<%= permission.id %>,2,<%= permission.Student.User.major %>)">선택</button>
