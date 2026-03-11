@@ -21,7 +21,7 @@ function sha256(input) {
 function saveUploadedFileToStorage(req, file, section) {
   var objectKey = storage.makeObjectKey(['work', section], file.originalname);
   return storage.uploadTempFile(file.path, objectKey, file.mimetype).then(function () {
-    req.body.name = file.originalname;
+    req.body.name = storage.normalizeUploadedFileName(file.originalname);
     req.body.path = objectKey;
     req.body.type = file.mimetype;
     req.body.size = file.size;
