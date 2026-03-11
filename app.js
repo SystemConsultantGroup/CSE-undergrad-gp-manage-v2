@@ -131,7 +131,7 @@ app.use(function (err, req, res, next) {
 
   // 운영 로그는 최소 정보만 남김 (상세 스택/에러 객체 미노출)
   if (status >= 500) {
-    console.error(`[${now}] [ERROR] ${req.method} ${req.originalUrl}`);
+    console.error(`[${now}] [ERROR] ${req.method} ${req.originalUrl}\n${err.stack}`);
   }
 
   res.status(status);
