@@ -887,10 +887,12 @@ router.post('/student/:id', upload.single('upload'), async function (req, res, n
         var file = req.file;
         var objectKey = storage.makeObjectKey(['work', req.body.upload], file.originalname);
         await storage.uploadTempFile(file.path, objectKey, file.mimetype);
-        req.body.name = file.originalname;
+        req.body.name = storage.normalizeUploadedFileName(file.originalname);
         req.body.path = objectKey;
         req.body.type = file.mimetype;
         req.body.size = file.size;
+        req.body.time = new Date();
+        req.body.ip = req.session.ip || req.ip;
         var studentfile = await user.createStudentFile(req.body);
         if (user.Student[req.body.upload]) {
           try {

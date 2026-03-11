@@ -448,7 +448,7 @@ router.post(
               var objectKey = storage.makeObjectKey([board.title], file.originalname);
               await storage.uploadTempFile(file.path, objectKey, file.mimetype);
               req.body.BoardId = board.id;
-              req.body.name = file.originalname;
+              req.body.name = storage.normalizeUploadedFileName(file.originalname);
               req.body.path = objectKey;
               req.body.type = file.mimetype;
               req.body.size = file.size;
@@ -529,7 +529,7 @@ router.post(
                 var objectKey = storage.makeObjectKey([board.title], file.originalname);
                 await storage.uploadTempFile(file.path, objectKey, file.mimetype);
                 req.body.BoardId = board.id;
-                req.body.name = file.originalname;
+                req.body.name = storage.normalizeUploadedFileName(file.originalname);
                 req.body.path = objectKey;
                 req.body.type = file.mimetype;
                 req.body.size = file.size;
@@ -664,7 +664,7 @@ router.post(
                 var objectKey = storage.makeObjectKey([board.title], file.originalname);
                 await storage.uploadTempFile(file.path, objectKey, file.mimetype);
                 req.body.BoardId = board.id;
-                req.body.name = file.originalname;
+                req.body.name = storage.normalizeUploadedFileName(file.originalname);
                 req.body.path = objectKey;
                 req.body.type = file.mimetype;
                 req.body.size = file.size;
@@ -708,7 +708,7 @@ router.post('/ajax/board/file/upload/:title', upload.single('upload'), async fun
         var file_name = path.basename(objectKey);
         await storage.uploadTempFile(file.path, objectKey, file.mimetype);
         req.body.BoardId = board.id;
-        req.body.name = file.originalname;
+        req.body.name = storage.normalizeUploadedFileName(file.originalname);
         req.body.path = objectKey;
         req.body.type = file.mimetype;
         req.body.size = file.size;
