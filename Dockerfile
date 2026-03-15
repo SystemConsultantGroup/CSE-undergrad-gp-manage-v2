@@ -28,6 +28,7 @@ COPY . .
 RUN mkdir -p /app/webdata_tmp
 
 ENV NODE_ENV=production
+ENV TZ=Asia/Seoul
 ENV PORT=8091
 
 EXPOSE 8091
