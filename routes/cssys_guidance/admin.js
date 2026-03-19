@@ -292,7 +292,10 @@ router.get('/prof_login/:id', function (req, res, next) {
   }).then(function (user) {
     if (user) {
       req.session.user = user;
-      res.redirect('/cssys/guidance/prof');
+      req.session.save(function (err) {
+        if (err) return next(err);
+        res.redirect('/cssys/guidance/prof');
+      });
     } else next();
   });
 });
@@ -883,7 +886,10 @@ router.get('/student_login/:id', function (req, res, next) {
   }).then(function (user) {
     if (user) {
       req.session.user = user;
-      res.redirect('/cssys/guidance/student');
+      req.session.save(function (err) {
+        if (err) return next(err);
+        res.redirect('/cssys/guidance/student');
+      });
     } else next();
   });
 });

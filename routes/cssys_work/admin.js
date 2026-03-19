@@ -377,13 +377,10 @@ router.get('/prof_login/:id', async function (req, res, next) {
       },
     });
     if (user) {
-      req.session.regenerate(function (err) {
+      req.session.user = user;
+      req.session.save(function (err) {
         if (err) return next(err);
-        req.session.user = user;
-        req.session.save(function (err) {
-          if (err) return next(err);
-          res.redirect('/cssys/work/prof');
-        });
+        res.redirect('/cssys/work/prof');
       });
     } else next();
   } catch (err) {
@@ -960,13 +957,10 @@ router.get('/student_login/:id', async function (req, res, next) {
       },
     });
     if (user) {
-      req.session.regenerate(function (err) {
+      req.session.user = user;
+      req.session.save(function (err) {
         if (err) return next(err);
-        req.session.user = user;
-        req.session.save(function (err) {
-          if (err) return next(err);
-          res.redirect('/cssys/work/student');
-        });
+        res.redirect('/cssys/work/student');
       });
     } else next();
   } catch (err) {
