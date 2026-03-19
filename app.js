@@ -82,8 +82,8 @@ app.use(
     secret: sessionSecret,
     store: sessionStore,
     proxy: true,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: { maxAge: 3 * 60 * 60 * 1000 }, // 세션 유지 3시간
   }),
 );

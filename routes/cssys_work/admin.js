@@ -955,7 +955,10 @@ router.get('/student_login/:id', async function (req, res, next) {
     });
     if (user) {
       req.session.user = user;
-      res.redirect('/cssys/work/student');
+      req.session.save(function (err) {
+        if (err) return next(err);
+        res.redirect('/cssys/work/student');
+      });
     } else next();
   } catch (err) {
     next(err);
