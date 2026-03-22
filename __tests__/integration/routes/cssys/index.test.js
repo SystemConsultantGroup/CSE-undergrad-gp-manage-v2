@@ -1,4 +1,7 @@
 const request = require('supertest');
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const { sha256 } = require('../../helpers/factory');
 const { resetDatabase, ensureMinioBucket } = require('../../helpers/db');
 
@@ -681,6 +684,146 @@ describe('CSSYS Index Routes Integration', () => {
       expect(res.status).toBe(200);
       expect(res.body.result).toBe(false);
       expect(res.body.text).toContain('답변글');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // 12-14. Board File routes (upload, download, delete) — MinIO 사용
+  // -------------------------------------------------------------------------
+  describe('Board File routes (MinIO)', () => {
+    let board, objectKey, boardFile;
+    const Minio = require('minio');
+
+    beforeAll(async () => {
+      board = await cssysModels.Board.create({ title: 'file_board' });
+
+      // MinIO에 직접 파일 업로드 (라우트 우회 — multer 경로 문제 회피)
+      const config = require('../../../../config');
+      const endpoint = new URL(
+        /^https?:\/\//i.test(config.minio.endPoint) ? config.minio.endPoint : `http://${config.minio.endPoint}`,
+      );
+      const client = new Minio.Client({
+        endPoint: endpoint.hostname,
+        port: config.minio.port || Number(endpoint.port) || 9000,
+        useSSL: false,
+        accessKey: config.minio.accessKey,
+        secretKey: config.minio.secretKey,
+      });
+
+      objectKey = 'test-uploads/board-test-file.txt';
+      const content = Buffer.from('board file test content');
+      await client.putObject(config.minio.bucket, objectKey, content);
+
+      // DB에 BoardFile 레코드 생성
+      boardFile = await cssysModels.BoardFile.create({
+        name: 'board-test-file.txt',
+        path: objectKey,
+        type: 'text/plain',
+        size: content.length,
+        downs: 0,
+        time: new Date(),
+        ip: '127.0.0.1',
+        BoardId: board.id,
+        UserId: adminUser.id,
+      });
+    });
+
+    test('ALL /ajax/board/file/download/:title/:file_name - 파일 다운로드 성공', async () => {
+      const fileName = path.basename(boardFile.path);
+      const res = await agent.get(`/cssys/ajax/board/file/download/file_board/${fileName}`);
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-disposition']).toBeDefined();
+    });
+
+    test('ALL /ajax/board/file/download - 다운로드 시 조회수 증가', async () => {
+      const before = await cssysModels.BoardFile.findByPk(boardFile.id);
+      const downsBefore = before.downs;
+
+      const fileName = path.basename(boardFile.path);
+      await agent.get(`/cssys/ajax/board/file/download/file_board/${fileName}`);
+
+      const after = await cssysModels.BoardFile.findByPk(boardFile.id);
+      expect(after.downs).toBe(downsBefore + 1);
+    });
+
+    test('POST /ajax/board/file/delete - 비관리자는 타인 파일 삭제 불가', async () => {
+      const fileName = path.basename(boardFile.path);
+
+      const studentAgent = request.agent(app);
+      await studentAgent.post('/cssys/login').send({ ids: 'cssys_student', password: 'test1234' });
+
+      const res = await studentAgent.post(`/cssys/ajax/board/file/delete/file_board/${fileName}`).send({});
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(false);
+      expect(res.body.text).toContain('관리자');
+    });
+
+    test('POST /ajax/board/file/delete/:title/:file_name - 파일 삭제 성공', async () => {
+      const fileName = path.basename(boardFile.path);
+
+      const res = await agent.post(`/cssys/ajax/board/file/delete/file_board/${fileName}`).send({});
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(true);
+
+      const deleted = await cssysModels.BoardFile.findByPk(boardFile.id);
+      expect(deleted).toBeNull();
+    });
+
+    test('POST /ajax/board/file/upload/:title - 파일 업로드 성공', async () => {
+      const tempFile = path.join(os.tmpdir(), 'test-board-upload.txt');
+      fs.writeFileSync(tempFile, 'upload test content');
+
+      // multer가 multipart 파싱 시 req.body를 재설정할 수 있어
+      // cssys 미들웨어가 설정한 time/ip가 유실될 수 있음 → field로 직접 전달
+      const res = await agent
+        .post('/cssys/ajax/board/file/upload/file_board?CKEditorFuncNum=1')
+        .field('time', new Date().toISOString())
+        .field('ip', '127.0.0.1')
+        .attach('upload', tempFile);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('업로드 완료');
+
+      // 업로드된 파일이 DB에 저장되었는지 확인
+      const uploadedFile = await cssysModels.BoardFile.findOne({
+        where: { BoardId: board.id, UserId: adminUser.id },
+        order: [['id', 'DESC']],
+      });
+      expect(uploadedFile).not.toBeNull();
+      expect(uploadedFile.name).toBe('test-board-upload.txt');
+
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (_) {
+        /* multer가 이미 삭제 */
+      }
+    });
+
+    test('POST /ajax/board/file/upload/:title - 파일 없이 전송 시 안내 메시지', async () => {
+      const res = await agent.post('/cssys/ajax/board/file/upload/file_board?CKEditorFuncNum=1').field('dummy', '');
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('파일이 업로드되지 않았습니다');
+    });
+
+    test('POST /ajax/board/file/upload/:title - 존재하지 않는 게시판은 404', async () => {
+      const tempFile = path.join(os.tmpdir(), 'test-board-upload-404.txt');
+      fs.writeFileSync(tempFile, 'test');
+
+      const res = await agent
+        .post('/cssys/ajax/board/file/upload/nonexistent_board?CKEditorFuncNum=1')
+        .attach('upload', tempFile);
+
+      expect(res.status).toBe(404);
+
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (e) {
+        /* ignore */
+      }
     });
   });
 });
