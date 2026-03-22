@@ -12,6 +12,8 @@
     "watch:css": "nodemon --watch public/css --ext less --exec \"pnpm run build:css\"",
     "test": "jest",
     "test:coverage": "jest --coverage",
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:integration:coverage": "jest --config jest.integration.config.js --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -42,6 +44,7 @@
     "sequelize": "^6.37.5"
   },
   "devDependencies": {
+    "@testcontainers/mysql": "^11.13.0",
     "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.0.1",
     "globals": "^16.0.0",
@@ -50,9 +53,15 @@
     "less": "^4.2.2",
     "lint-staged": "^16.2.7",
     "nodemon": "^3.1.9",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "supertest": "^7.2.2",
+    "testcontainers": "^11.13.0"
   },
   "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "__tests__/integration/"
+    ],
     "collectCoverageFrom": [
       "routes/**/*.js",
       "lib/**/*.js",
