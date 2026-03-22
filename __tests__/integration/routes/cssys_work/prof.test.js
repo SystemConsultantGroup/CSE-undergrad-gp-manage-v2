@@ -7,8 +7,9 @@ const {
   createAllSystems,
   createPermission,
   createStudentInfo,
+  createStudentFile,
 } = require('../../helpers/factory');
-const { resetDatabase } = require('../../helpers/db');
+const { resetDatabase, ensureMinioBucket } = require('../../helpers/db');
 
 describe('Prof Routes Integration', () => {
   let app, workModels, cssysModels;
@@ -20,6 +21,7 @@ describe('Prof Routes Integration', () => {
     cssysModels = require('../../../../models/cssys');
 
     await resetDatabase(workModels.sequelize, cssysModels.sequelize);
+    await ensureMinioBucket();
 
     app = require('../../../../app');
 
@@ -27,6 +29,9 @@ describe('Prof Routes Integration', () => {
     const result = await createProfUser(workModels, { ids: 'integprof' });
     profUser = result.user;
     profRecord = result.prof;
+
+    // 12개 시스템 생성 (main 템플릿이 systems[0]~[11] 참조)
+    await createAllSystems(workModels);
 
     // 로그인
     agent = request.agent(app);
@@ -36,13 +41,12 @@ describe('Prof Routes Integration', () => {
     expect(loginRes.body.type).toBe(1);
   }, 30000);
 
-  // sequelize.close() 하지 않음 — 모듈 캐시로 인해
-  // 다음 테스트 파일에서 재연결 불가. forceExit가 정리함.
+  // sequelize.close() 하지 않음 — forceExit가 정리함.
 
   // ---------------------------------------------------------------------------
-  // 인증
+  // 1. ALL * - 인증 가드 (type === 1)
   // ---------------------------------------------------------------------------
-  describe('Authentication Guard', () => {
+  describe('Authentication Guard (ALL *)', () => {
     test('비인증 요청은 로그인 페이지로 리다이렉트', async () => {
       const res = await request(app).get('/cssys/work/prof/main');
 
@@ -50,7 +54,7 @@ describe('Prof Routes Integration', () => {
       expect(res.headers.location).toBe('/cssys/login');
     });
 
-    test('학생 계정은 교수 페이지 접근 불가', async () => {
+    test('학생 계정(type=2)은 교수 페이지 접근 불가', async () => {
       const system = await createSystem(workModels);
       await createStudentUser(workModels, profRecord.id, system.id, {
         ids: 'student_auth_guard',
@@ -64,10 +68,32 @@ describe('Prof Routes Integration', () => {
       expect(res.status).toBe(302);
       expect(res.headers.location).toBe('/cssys/login');
     });
+
+    test('관리자 계정(type=0)은 교수 페이지 접근 불가', async () => {
+      await workModels.User.create({
+        ids: 'admin_guard_test',
+        password: sha256('test1234'),
+        name: '관리자',
+        email: 'admin_guard@test.com',
+        phone: '010-0000-0000',
+        type: 0,
+        major: 1,
+        time: new Date(),
+        ip: '127.0.0.1',
+      });
+
+      const adminAgent = request.agent(app);
+      await adminAgent.post('/cssys/login').send({ ids: 'admin_guard_test', password: 'test1234' });
+
+      const res = await adminAgent.get('/cssys/work/prof/main');
+
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe('/cssys/login');
+    });
   });
 
   // ---------------------------------------------------------------------------
-  // GET /
+  // 2. GET / - /main 으로 리다이렉트
   // ---------------------------------------------------------------------------
   describe('GET /', () => {
     test('/main 으로 리다이렉트', async () => {
@@ -79,12 +105,12 @@ describe('Prof Routes Integration', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // GET /main
+  // 3. GET /main - 대시보드
   // ---------------------------------------------------------------------------
   describe('GET /main', () => {
-    test('메인 대시보드 페이지 렌더링 성공', async () => {
-      // main.ejs 템플릿이 systems[0]~[11] 참조 → 12개 시스템 필요
-      const systems = await createAllSystems(workModels);
+    test('메인 대시보드 페이지 렌더링 성공 (12개 시스템 참조)', async () => {
+      // 학생 생성 (대시보드에 표시)
+      const systems = await workModels.System.findAll();
       await createStudentUser(workModels, profRecord.id, systems[0].id, {
         ids: 'student_main_1',
       });
@@ -97,7 +123,125 @@ describe('Prof Routes Integration', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // POST /student_list/ajax/get_students
+  // 4. GET /permission - 교수 배정 페이지
+  // ---------------------------------------------------------------------------
+  describe('GET /permission', () => {
+    test('배정 기간 내 - 권한 목록 페이지 렌더링', async () => {
+      // 시스템 4,6,8이 이미 활성 상태 (createAllSystems로 생성됨)
+      const res = await agent.get('/cssys/work/prof/permission');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+
+    test('배정 기간 외 - out_date 페이지 렌더링', async () => {
+      // 시스템 4,6,8을 만료 상태로 변경
+      const now = new Date();
+      const pastStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastEnd = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+      await workModels.System.update({ start: pastStart, end: pastEnd }, { where: { id: [4, 6, 8] } });
+
+      const res = await agent.get('/cssys/work/prof/permission');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+
+      // 원상복구 (후속 테스트를 위해)
+      const activeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const activeEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await workModels.System.update({ start: activeStart, end: activeEnd }, { where: { id: [4, 6, 8] } });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 5. GET /permission/application/:id - 학생 신청서 조회
+  // ---------------------------------------------------------------------------
+  describe('GET /permission/application/:id', () => {
+    test('권한이 있는 학생의 신청서 조회 성공', async () => {
+      const system = await workModels.System.findByPk(4);
+      const { user: studentUser, student } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_perm_app',
+      });
+
+      // StudentInfo 생성
+      const studentInfo = await createStudentInfo(workModels, studentUser.id);
+      await student.update({ StudentInfoId: studentInfo.id });
+
+      // Permission 생성 (firstProfId = 로그인한 교수)
+      await createPermission(workModels, student.id, {
+        firstProfId: profRecord.id,
+      });
+
+      const res = await agent.get(`/cssys/work/prof/permission/application/${studentUser.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 6. POST /permission/ajax/set_student - 학생 선택
+  // ---------------------------------------------------------------------------
+  describe('POST /permission/ajax/set_student', () => {
+    test('활성 기간 내 학생 선택 성공', async () => {
+      // 시스템 4가 활성 상태인지 확인
+      const now = new Date();
+      const activeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const activeEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await workModels.System.update({ start: activeStart, end: activeEnd }, { where: { id: 4 } });
+
+      const system = await workModels.System.findByPk(4);
+      const { student } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_set_perm',
+      });
+
+      const yearterm = now.getFullYear().toString() + (now.getMonth() < 6 ? '01' : '02');
+      const permission = await createPermission(workModels, student.id, {
+        yearterm: parseInt(yearterm),
+        order: 1,
+        firstProfId: profRecord.id,
+      });
+
+      const res = await agent.post('/cssys/work/prof/permission/ajax/set_student').send({
+        id: permission.id,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(true);
+
+      // DB 확인 - firstSelected가 1로 설정되었는지
+      const updated = await workModels.Permission.findByPk(permission.id);
+      expect(updated.firstSelected).toBeTruthy();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 7. GET /student_list - 학생 목록 페이지
+  // ---------------------------------------------------------------------------
+  describe('GET /student_list', () => {
+    test('학생 목록 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/student_list');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 8. GET /student_list/excel/ - 엑셀 다운로드
+  // ---------------------------------------------------------------------------
+  describe('GET /student_list/excel/', () => {
+    test('엑셀 파일 다운로드 성공', async () => {
+      const res = await agent.get('/cssys/work/prof/student_list/excel/');
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toContain('spreadsheetml');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 9. POST /student_list/ajax/get_students - 학생 목록 JSON
   // ---------------------------------------------------------------------------
   describe('POST /student_list/ajax/get_students', () => {
     test('배정된 학생 목록 JSON 반환', async () => {
@@ -148,62 +292,82 @@ describe('Prof Routes Integration', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // POST /student/:id (메모/코멘트/우수작 업데이트)
+  // 10. GET /student/application/:id - 학생 신청서 보기
   // ---------------------------------------------------------------------------
-  describe('POST /student/:id', () => {
-    test('학생 메모, 코멘트, 우수작 업데이트 성공', async () => {
+  describe('GET /student/application/:id', () => {
+    test('소속 학생의 신청서 페이지 렌더링', async () => {
       const system = await createSystem(workModels);
-      const { user: studentUser } = await createStudentUser(workModels, profRecord.id, system.id, {
-        ids: 'student_update_1',
+      const { user: studentUser, student } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_app_view',
       });
 
-      const res = await agent.post(`/cssys/work/prof/student/${studentUser.id}`).send({
-        note: '업데이트된 메모',
-        comment: '업데이트된 코멘트',
-        masterpiece: 1,
-      });
+      // StudentInfo 생성 및 연결
+      const studentInfo = await createStudentInfo(workModels, studentUser.id);
+      await student.update({ StudentInfoId: studentInfo.id });
+
+      const res = await agent.get(`/cssys/work/prof/student/application/${studentUser.id}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.result).toBe(true);
-
-      // DB 반영 확인
-      const updated = await workModels.Student.findOne({
-        where: { UserId: studentUser.id },
-      });
-      expect(updated.note).toBe('업데이트된 메모');
-      expect(updated.comment).toBe('업데이트된 코멘트');
-      expect(updated.masterpiece).toBe(1);
+      expect(res.type).toBe('text/html');
     });
 
-    test('존재하지 않는 학생에 대한 업데이트는 실패', async () => {
-      const res = await agent.post('/cssys/work/prof/student/99999').send({ note: 'x', comment: 'x', masterpiece: 0 });
-
-      expect(res.status).toBe(200);
-      expect(res.body.result).toBe(false);
-      expect(res.body.text).toContain('존재하지 않는');
-    });
-
-    test('다른 교수의 학생은 업데이트 불가', async () => {
-      // 다른 교수 생성
-      const { prof: otherProf } = await createProfUser(workModels, {
-        ids: 'other_prof_1',
-      });
+    test('다른 교수의 학생 신청서는 접근 불가', async () => {
+      const { prof: otherProf } = await createProfUser(workModels, { ids: 'other_prof_app' });
       const system = await createSystem(workModels);
       const { user: otherStudent } = await createStudentUser(workModels, otherProf.id, system.id, {
-        ids: 'other_prof_student',
+        ids: 'other_student_app',
       });
 
-      const res = await agent
-        .post(`/cssys/work/prof/student/${otherStudent.id}`)
-        .send({ note: 'hack', comment: 'hack', masterpiece: 1 });
+      const res = await agent.get(`/cssys/work/prof/student/application/${otherStudent.id}`);
 
-      expect(res.status).toBe(200);
-      expect(res.body.result).toBe(false);
+      // Prof 불일치 → next() 호출 → 404 또는 비정상 응답
+      expect([404, 500]).toContain(res.status);
     });
   });
 
   // ---------------------------------------------------------------------------
-  // GET /student/:id/confirm/:state/:value (제출 승인/반려)
+  // 11. GET /student/:id - 학생 상세 보기
+  // ---------------------------------------------------------------------------
+  describe('GET /student/:id', () => {
+    test('소속 학생의 상세 페이지 렌더링 (파일 연관 포함)', async () => {
+      const system = await createSystem(workModels);
+      const { user: studentUser, student } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_detail_view',
+      });
+
+      // StudentInfo 생성 및 연결
+      const studentInfo = await createStudentInfo(workModels, studentUser.id);
+      await student.update({ StudentInfoId: studentInfo.id });
+
+      // StudentFile 생성 및 연결 (서약서)
+      const oathFile = await createStudentFile(workModels, studentUser.id, {
+        name: 'oath.pdf',
+        path: 'uploads/oath.pdf',
+      });
+      await student.update({ oathId: oathFile.id });
+
+      const res = await agent.get(`/cssys/work/prof/student/${studentUser.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+
+    test('다른 교수의 학생은 접근 불가', async () => {
+      const { prof: otherProf } = await createProfUser(workModels, { ids: 'other_prof_detail' });
+      const system = await createSystem(workModels);
+      const { user: otherStudent } = await createStudentUser(workModels, otherProf.id, system.id, {
+        ids: 'other_student_detail',
+      });
+
+      const res = await agent.get(`/cssys/work/prof/student/${otherStudent.id}`);
+
+      // Prof 불일치 → next() 호출
+      expect([404, 500]).toContain(res.status);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 12. GET /student/:id/confirm/:state/:value - 승인/반려
   // ---------------------------------------------------------------------------
   describe('GET /student/:id/confirm/:state/:value', () => {
     test('제안서 승인 (state=1, value=1)', async () => {
@@ -264,61 +428,72 @@ describe('Prof Routes Integration', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // GET /config & POST /config (회원정보 수정)
+  // 13. POST /student/:id - 메모/코멘트/우수작 업데이트
   // ---------------------------------------------------------------------------
-  describe('Config (회원정보)', () => {
-    test('GET /config - 설정 페이지 렌더링', async () => {
-      const res = await agent.get('/cssys/work/prof/config');
+  describe('POST /student/:id', () => {
+    test('학생 메모, 코멘트, 우수작 업데이트 성공', async () => {
+      const system = await createSystem(workModels);
+      const { user: studentUser } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_update_1',
+      });
 
-      expect(res.status).toBe(200);
-      expect(res.type).toBe('text/html');
-    });
-
-    test('POST /config - 이메일, 전화번호 업데이트', async () => {
-      const res = await agent.post('/cssys/work/prof/config').send({
-        email: 'updated@example.com',
-        phone: '010-0000-0000',
-        password: '',
+      const res = await agent.post(`/cssys/work/prof/student/${studentUser.id}`).send({
+        note: '업데이트된 메모',
+        comment: '업데이트된 코멘트',
+        masterpiece: 1,
       });
 
       expect(res.status).toBe(200);
       expect(res.body.result).toBe(true);
 
-      const updated = await workModels.User.findByPk(profUser.id);
-      expect(updated.email).toBe('updated@example.com');
-      expect(updated.phone).toBe('010-0000-0000');
+      // DB 반영 확인
+      const updated = await workModels.Student.findOne({
+        where: { UserId: studentUser.id },
+      });
+      expect(updated.note).toBe('업데이트된 메모');
+      expect(updated.comment).toBe('업데이트된 코멘트');
+      expect(updated.masterpiece).toBe(1);
     });
 
-    test('POST /config - 비밀번호 변경', async () => {
-      const res = await agent.post('/cssys/work/prof/config').send({
-        email: 'prof@test.com',
-        phone: '010-1234-5678',
-        password: 'newpass999',
+    test('존재하지 않는 학생에 대한 업데이트는 실패', async () => {
+      const res = await agent.post('/cssys/work/prof/student/99999').send({
+        note: 'x',
+        comment: 'x',
+        masterpiece: 0,
       });
 
       expect(res.status).toBe(200);
-      expect(res.body.result).toBe(true);
+      expect(res.body.result).toBe(false);
+      expect(res.body.text).toContain('존재하지 않는');
+    });
 
-      const updated = await workModels.User.findByPk(profUser.id);
-      expect(updated.password).toBe(sha256('newpass999'));
+    test('다른 교수의 학생은 업데이트 불가', async () => {
+      const { prof: otherProf } = await createProfUser(workModels, { ids: 'other_prof_1' });
+      const system = await createSystem(workModels);
+      const { user: otherStudent } = await createStudentUser(workModels, otherProf.id, system.id, {
+        ids: 'other_prof_student',
+      });
 
-      // 원래 비밀번호로 복원 (후속 테스트를 위해)
-      await updated.update({ password: sha256('test1234') });
+      const res = await agent
+        .post(`/cssys/work/prof/student/${otherStudent.id}`)
+        .send({ note: 'hack', comment: 'hack', masterpiece: 1 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(false);
     });
   });
 
   // ---------------------------------------------------------------------------
-  // GET /examine (심사)
+  // 14. GET /examine - 심사 목록
   // ---------------------------------------------------------------------------
   describe('GET /examine', () => {
     test('심사 기간 내 - 심사 목록 페이지 렌더링', async () => {
-      // System id=12 가 심사 시스템 (createAllSystems 에서 이미 생성됨)
-      let system = await workModels.System.findByPk(12);
-      if (!system) {
-        system = await createSystem(workModels, { id: 12 });
-      }
+      // System id=12가 심사 시스템 (createAllSystems에서 이미 생성됨)
+      const system = await workModels.System.findByPk(12);
+      expect(system).not.toBeNull();
+
       await createStudentUser(workModels, profRecord.id, system.id, {
-        ids: 'student_examine_1',
+        ids: 'student_examine_list',
       });
 
       const res = await agent.get('/cssys/work/prof/examine');
@@ -326,19 +501,75 @@ describe('Prof Routes Integration', () => {
       expect(res.status).toBe(200);
       expect(res.type).toBe('text/html');
     });
+
+    test('심사 기간 외 - out_date 페이지 렌더링', async () => {
+      const now = new Date();
+      const pastStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastEnd = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+      await workModels.System.update({ start: pastStart, end: pastEnd }, { where: { id: 12 } });
+
+      const res = await agent.get('/cssys/work/prof/examine');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+
+      // 원상복구
+      const activeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const activeEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await workModels.System.update({ start: activeStart, end: activeEnd }, { where: { id: 12 } });
+    });
   });
 
   // ---------------------------------------------------------------------------
-  // POST /examine/:id (심사 결과 입력)
+  // 15. GET /examine/:id - 심사 상세 보기
+  // ---------------------------------------------------------------------------
+  describe('GET /examine/:id', () => {
+    test('심사 기간 내 - 심사 상세 페이지 렌더링', async () => {
+      const system = await workModels.System.findByPk(12);
+      const { user: studentUser, student } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_examine_view',
+      });
+
+      // StudentInfo 생성 및 연결
+      const studentInfo = await createStudentInfo(workModels, studentUser.id);
+      await student.update({ StudentInfoId: studentInfo.id });
+
+      const res = await agent.get(`/cssys/work/prof/examine/${studentUser.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+
+    test('심사 기간 외 - out_date 페이지 렌더링', async () => {
+      const now = new Date();
+      const pastStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastEnd = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+      await workModels.System.update({ start: pastStart, end: pastEnd }, { where: { id: 12 } });
+
+      const { user: studentUser } = await createStudentUser(workModels, profRecord.id, 12, {
+        ids: 'student_examine_view_expired',
+      });
+
+      const res = await agent.get(`/cssys/work/prof/examine/${studentUser.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+
+      // 원상복구
+      const activeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const activeEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await workModels.System.update({ start: activeStart, end: activeEnd }, { where: { id: 12 } });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 16. POST /examine/:id - 심사 결과 제출
   // ---------------------------------------------------------------------------
   describe('POST /examine/:id', () => {
     test('심사 결과 합격 처리', async () => {
-      // id=12 시스템이 이미 존재하면 재사용, 없으면 생성
-      let system = await workModels.System.findByPk(12);
-      if (!system) {
-        system = await createSystem(workModels, { id: 12 });
-      }
-
+      const system = await workModels.System.findByPk(12);
       const { user: studentUser } = await createStudentUser(workModels, profRecord.id, system.id, {
         ids: 'student_examine_pass',
       });
@@ -360,11 +591,7 @@ describe('Prof Routes Integration', () => {
     });
 
     test('심사 결과 불합격 처리', async () => {
-      let system = await workModels.System.findByPk(12);
-      if (!system) {
-        system = await createSystem(workModels, { id: 12 });
-      }
-
+      const system = await workModels.System.findByPk(12);
       const { user: studentUser } = await createStudentUser(workModels, profRecord.id, system.id, {
         ids: 'student_examine_fail',
       });
@@ -383,42 +610,241 @@ describe('Prof Routes Integration', () => {
       });
       expect(updated.result).toBe(2);
     });
+
+    test('우수작 선정 처리', async () => {
+      const system = await workModels.System.findByPk(12);
+      const { user: studentUser } = await createStudentUser(workModels, profRecord.id, system.id, {
+        ids: 'student_examine_masterpiece',
+      });
+
+      const res = await agent.post(`/cssys/work/prof/examine/${studentUser.id}`).send({
+        note: '우수작',
+        masterpiece: 1,
+        result: 1,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(true);
+
+      const updated = await workModels.Student.findOne({
+        where: { UserId: studentUser.id },
+      });
+      expect(updated.masterpiece).toBe(1);
+    });
+
+    test('다른 교수의 학생은 심사 불가', async () => {
+      const { prof: otherProf } = await createProfUser(workModels, { ids: 'other_prof_exam' });
+      const system = await workModels.System.findByPk(12);
+      const { user: otherStudent } = await createStudentUser(workModels, otherProf.id, system.id, {
+        ids: 'other_student_exam',
+      });
+
+      const res = await agent.post(`/cssys/work/prof/examine/${otherStudent.id}`).send({
+        note: 'hack',
+        masterpiece: 0,
+        result: 1,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(false);
+    });
+
+    test('심사 기간 외에는 심사 불가', async () => {
+      const now = new Date();
+      const pastStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastEnd = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+      await workModels.System.update({ start: pastStart, end: pastEnd }, { where: { id: 12 } });
+
+      const res = await agent.post('/cssys/work/prof/examine/1').send({
+        note: '기간외',
+        masterpiece: 0,
+        result: 1,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(false);
+      expect(res.body.text).toContain('심사 기간이 아닙니다');
+
+      // 원상복구
+      const activeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const activeEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await workModels.System.update({ start: activeStart, end: activeEnd }, { where: { id: 12 } });
+    });
   });
 
   // ---------------------------------------------------------------------------
-  // Static page routes (단순 렌더링)
+  // 17. GET /notice - 리다이렉트
   // ---------------------------------------------------------------------------
-  describe('Static page routes', () => {
-    test('GET /student_list - 학생 목록 페이지 렌더링', async () => {
-      const res = await agent.get('/cssys/work/prof/student_list');
-
-      expect(res.status).toBe(200);
-    });
-
-    test('GET /notice - /notice/list 로 리다이렉트', async () => {
+  describe('GET /notice', () => {
+    test('/notice/list 로 리다이렉트', async () => {
       const res = await agent.get('/cssys/work/prof/notice');
 
       expect(res.status).toBe(302);
       expect(res.headers.location).toBe('/cssys/work/prof/notice/list');
     });
+  });
 
-    test('GET /notice/list - 공지사항 목록 렌더링', async () => {
+  // ---------------------------------------------------------------------------
+  // 18. GET /notice/list - 공지사항 목록
+  // ---------------------------------------------------------------------------
+  describe('GET /notice/list', () => {
+    test('공지사항 목록 페이지 렌더링', async () => {
       const res = await agent.get('/cssys/work/prof/notice/list');
 
       expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
     });
+  });
 
-    test('GET /qna - /qna/list 로 리다이렉트', async () => {
+  // ---------------------------------------------------------------------------
+  // 19. GET /notice/view/:id - 공지사항 상세 보기
+  // ---------------------------------------------------------------------------
+  describe('GET /notice/view/:id', () => {
+    test('공지사항 상세 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/notice/view/1');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 20. GET /qna - 리다이렉트
+  // ---------------------------------------------------------------------------
+  describe('GET /qna', () => {
+    test('/qna/list 로 리다이렉트', async () => {
       const res = await agent.get('/cssys/work/prof/qna');
 
       expect(res.status).toBe(302);
       expect(res.headers.location).toBe('/cssys/work/prof/qna/list');
     });
+  });
 
-    test('GET /qna/list - QnA 목록 렌더링', async () => {
+  // ---------------------------------------------------------------------------
+  // 21. GET /qna/list - QnA 목록
+  // ---------------------------------------------------------------------------
+  describe('GET /qna/list', () => {
+    test('QnA 목록 페이지 렌더링', async () => {
       const res = await agent.get('/cssys/work/prof/qna/list');
 
       expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 22. GET /qna/write - QnA 작성
+  // ---------------------------------------------------------------------------
+  describe('GET /qna/write', () => {
+    test('QnA 작성 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/qna/write');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 23. GET /qna/view/:id - QnA 상세 보기
+  // ---------------------------------------------------------------------------
+  describe('GET /qna/view/:id', () => {
+    test('QnA 상세 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/qna/view/1');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 24. GET /qna/reply/:id - QnA 답변
+  // ---------------------------------------------------------------------------
+  describe('GET /qna/reply/:id', () => {
+    test('QnA 답변 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/qna/reply/1');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 25. GET /qna/modify/:id - QnA 수정
+  // ---------------------------------------------------------------------------
+  describe('GET /qna/modify/:id', () => {
+    test('QnA 수정 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/qna/modify/1');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 26. GET /config - 회원정보 수정 페이지
+  // ---------------------------------------------------------------------------
+  describe('GET /config', () => {
+    test('설정 페이지 렌더링', async () => {
+      const res = await agent.get('/cssys/work/prof/config');
+
+      expect(res.status).toBe(200);
+      expect(res.type).toBe('text/html');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 27. POST /config - 회원정보 수정
+  // ---------------------------------------------------------------------------
+  describe('POST /config', () => {
+    test('이메일, 전화번호 업데이트', async () => {
+      const res = await agent.post('/cssys/work/prof/config').send({
+        email: 'updated@example.com',
+        phone: '010-0000-0000',
+        password: '',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(true);
+
+      const updated = await workModels.User.findByPk(profUser.id);
+      expect(updated.email).toBe('updated@example.com');
+      expect(updated.phone).toBe('010-0000-0000');
+    });
+
+    test('비밀번호 변경', async () => {
+      const res = await agent.post('/cssys/work/prof/config').send({
+        email: 'prof@test.com',
+        phone: '010-1234-5678',
+        password: 'newpass999',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(true);
+
+      const updated = await workModels.User.findByPk(profUser.id);
+      expect(updated.password).toBe(sha256('newpass999'));
+
+      // 원래 비밀번호로 복원 (후속 테스트를 위해)
+      await updated.update({ password: sha256('test1234') });
+    });
+
+    test('비밀번호 비워두면 비밀번호 변경 없음', async () => {
+      const before = await workModels.User.findByPk(profUser.id);
+      const originalPassword = before.password;
+
+      const res = await agent.post('/cssys/work/prof/config').send({
+        email: 'nopwchange@example.com',
+        phone: '010-5555-5555',
+        password: '',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.result).toBe(true);
+
+      const after = await workModels.User.findByPk(profUser.id);
+      expect(after.password).toBe(originalPassword);
+      expect(after.email).toBe('nopwchange@example.com');
     });
   });
 });
