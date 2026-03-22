@@ -16,4 +16,5 @@ module.exports = {
     'middleware.js',
     '!**/node_modules/**',
   ],
+  coverageReporters: ['text', 'json-summary', 'lcov'],
 };

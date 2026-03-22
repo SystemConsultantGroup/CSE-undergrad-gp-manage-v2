@@ -69,6 +69,11 @@
       "models/**/*.js",
       "middleware.js",
       "!**/node_modules/**"
+    ],
+    "coverageReporters": [
+      "text",
+      "json-summary",
+      "lcov"
     ]
   },
   "lint-staged": {
