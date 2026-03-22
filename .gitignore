@@ -6,3 +6,4 @@ webdata/
 .env
 .env.*
 coverage/
+__tests__/integration/.container-info.json
