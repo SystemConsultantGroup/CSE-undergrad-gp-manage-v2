@@ -1,14 +1,28 @@
+let tablesCreated = false;
+
 /**
- * 모든 테이블 DROP 후 재생성 (FK 제약 안전하게 처리)
- * dropAllTables()는 MySQL에서 SET FOREIGN_KEY_CHECKS = 0 을 내부적으로 처리함
+ * DB 초기화 — 첫 호출만 DROP+CREATE, 이후는 TRUNCATE만 수행 (빠름)
  */
 async function resetDatabase(...sequelizeInstances) {
-  // 첫 번째 인스턴스로 모든 테이블 DROP (같은 DB이므로 한 번이면 됨)
-  await sequelizeInstances[0].getQueryInterface().dropAllTables();
+  const primary = sequelizeInstances[0];
 
-  // 모든 인스턴스의 모델 sync
-  for (const sequelize of sequelizeInstances) {
-    await sequelize.sync();
+  if (!tablesCreated) {
+    // 첫 호출: 테이블 DROP 후 재생성
+    await primary.getQueryInterface().dropAllTables();
+    for (const sequelize of sequelizeInstances) {
+      await sequelize.sync();
+    }
+    tablesCreated = true;
+  } else {
+    // 이후 호출: 데이터만 삭제 (DDL 없이 빠름)
+    const tables = await primary.getQueryInterface().showAllTables();
+    await primary.query('SET FOREIGN_KEY_CHECKS = 0');
+    for (const table of tables) {
+      if (table !== 'sessions') {
+        await primary.query(`TRUNCATE TABLE \`${table}\``);
+      }
+    }
+    await primary.query('SET FOREIGN_KEY_CHECKS = 1');
   }
 }
 
