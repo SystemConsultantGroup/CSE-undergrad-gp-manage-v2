@@ -809,6 +809,25 @@ describe('CSSYS Index Routes Integration', () => {
       expect(res.text).toContain('파일이 업로드되지 않았습니다');
     });
 
+    test('POST /ajax/board/file/upload/:title - 20MB 초과 파일은 거부', async () => {
+      const tempFile = path.join(os.tmpdir(), 'test-board-oversize.bin');
+      // 20MB + 1byte 파일 생성
+      fs.writeFileSync(tempFile, Buffer.alloc(20 * 1024 * 1024 + 1));
+
+      const res = await agent
+        .post('/cssys/ajax/board/file/upload/file_board?CKEditorFuncNum=1')
+        .attach('upload', tempFile);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('파일 사이즈가 초과');
+
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (_) {
+        /* ignore */
+      }
+    }, 60000);
+
     test('POST /ajax/board/file/upload/:title - 존재하지 않는 게시판은 404', async () => {
       const tempFile = path.join(os.tmpdir(), 'test-board-upload-404.txt');
       fs.writeFileSync(tempFile, 'test');
