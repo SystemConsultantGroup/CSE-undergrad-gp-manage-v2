@@ -56,7 +56,7 @@ jobs:
         with:
           title: Unit Test Coverage
           coverage-summary-path: coverage/coverage-summary.json
-          junit-xml-path: reports/unit-junit.xml
+          junitxml-path: reports/unit-junit.xml
           # unique-id: 같은 ID의 기존 댓글을 덮어씀 (댓글 누적 방지)
           unique-id-for-comment: unit-test
       - name: Upload coverage report
@@ -94,7 +94,7 @@ jobs:
         with:
           title: Integration Test Coverage
           coverage-summary-path: coverage/coverage-summary.json
-          junit-xml-path: reports/integration-junit.xml
+          junitxml-path: reports/integration-junit.xml
           # unique-id: 같은 ID의 기존 댓글을 덮어씀 (댓글 누적 방지)
           unique-id-for-comment: integration-test
       - name: Upload coverage report
