@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Run tests with coverage
-        run: JEST_JUNIT_OUTPUT_DIR=./reports JEST_JUNIT_OUTPUT_NAME=unit-junit.xml pnpm run test:coverage --reporters=default --reporters=jest-junit
+        run: pnpm run test:coverage
       - name: Coverage comment (Unit)
         # always(): 테스트 fail 시에도 실행 — fail 결과를 PR 댓글로 알려주기 위함
         if: github.event_name == 'pull_request' && always()
@@ -86,7 +86,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Run integration tests with coverage
-        run: JEST_JUNIT_OUTPUT_DIR=./reports JEST_JUNIT_OUTPUT_NAME=integration-junit.xml pnpm run test:integration:coverage --reporters=default --reporters=jest-junit
+        run: pnpm run test:integration:coverage
       - name: Coverage comment (Integration)
         # always(): 테스트 fail 시에도 실행 — fail 결과를 PR 댓글로 알려주기 위함
         if: github.event_name == 'pull_request' && always()

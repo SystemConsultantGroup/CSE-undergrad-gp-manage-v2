@@ -499,7 +499,8 @@ describe('Student Routes Integration', () => {
     test('파일 없이 전송 시 실패', async () => {
       await workModels.Student.update({ SystemId: 10 }, { where: { id: studentRecord.id } });
 
-      const res = await agent.post('/cssys/work/student/system/proc/midreport');
+      // .field()로 multipart 요청 트리거 — 없으면 multer가 req.files를 설정 안 함
+      const res = await agent.post('/cssys/work/student/system/proc/midreport').field('dummy', '');
 
       expect(res.status).toBe(200);
       expect(res.body.result).toBe(false);

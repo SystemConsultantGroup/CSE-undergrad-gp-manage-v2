@@ -17,4 +17,5 @@ module.exports = {
     '!**/node_modules/**',
   ],
   coverageReporters: ['text', 'json-summary', 'lcov'],
+  reporters: ['default', ['jest-junit', { outputDirectory: './reports', outputName: 'integration-junit.xml' }]],
 };

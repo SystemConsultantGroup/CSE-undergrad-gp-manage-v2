@@ -75,6 +75,16 @@
       "text",
       "json-summary",
       "lcov"
+    ],
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "./reports",
+          "outputName": "unit-junit.xml"
+        }
+      ]
     ]
   },
   "lint-staged": {
