@@ -30,8 +30,9 @@ jobs:
         run: pnpm run format:check
 
   test:
-    name: Test
+    name: Unit Test
     runs-on: ubuntu-latest
+    needs: [lint]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,18 +49,66 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run tests with coverage
         run: pnpm run test:coverage
+      - name: Coverage comment (Unit)
+        # always(): 테스트 fail 시에도 실행 — fail 결과를 PR 댓글로 알려주기 위함
+        if: github.event_name == 'pull_request' && always()
+        uses: MishaKav/jest-coverage-comment@v1
+        with:
+          title: Unit Test Coverage
+          coverage-summary-path: coverage/coverage-summary.json
+          junitxml-path: reports/unit-junit.xml
+          # unique-id: 같은 ID의 기존 댓글을 덮어씀 (댓글 누적 방지)
+          unique-id-for-comment: unit-test
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: unit-coverage-report
+          path: coverage/
+          retention-days: 14
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run integration tests with coverage
+        run: pnpm run test:integration:coverage
+      - name: Coverage comment (Integration)
+        # always(): 테스트 fail 시에도 실행 — fail 결과를 PR 댓글로 알려주기 위함
+        if: github.event_name == 'pull_request' && always()
+        uses: MishaKav/jest-coverage-comment@v1
+        with:
+          title: Integration Test Coverage
+          coverage-summary-path: coverage/coverage-summary.json
+          junitxml-path: reports/integration-junit.xml
+          # unique-id: 같은 ID의 기존 댓글을 덮어씀 (댓글 누적 방지)
+          unique-id-for-comment: integration-test
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-coverage-report
           path: coverage/
           retention-days: 14
 
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, integration-test]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
