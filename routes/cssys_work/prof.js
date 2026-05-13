@@ -714,6 +714,7 @@ router.get('/examine', async function (req, res, next) {
           include: [
             {
               model: models.Student,
+              required: true,
               include: [
                 {
                   model: models.System,
@@ -839,6 +840,7 @@ router.get('/examine/:id', async function (req, res, next) {
             include: [
               {
                 model: models.Student,
+                required: true,
                 include: [
                   {
                     model: models.System,
