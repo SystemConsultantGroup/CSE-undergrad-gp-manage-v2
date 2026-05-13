@@ -386,12 +386,14 @@ router.get('/student_list/excel/', function (req, res, next) {
     include: [
       {
         model: models.Student,
+        required: true,
         include: [
           {
             model: models.Prof,
             where: {
               UserId: req.session.user.id,
             },
+            required: true,
           },
           models.System,
         ],
@@ -445,12 +447,14 @@ router.post('/student_list/ajax/get_students', function (req, res, next) {
     include: [
       {
         model: models.Student,
+        required: true,
         include: [
           {
             model: models.Prof,
             where: {
               UserId: req.session.user.id,
             },
+            required: true,
           },
         ],
       },
