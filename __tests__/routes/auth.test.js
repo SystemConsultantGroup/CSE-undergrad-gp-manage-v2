@@ -68,40 +68,43 @@ describe('POST /cssys/login handler', () => {
       },
     };
 
-    // The POST /login handler from routes/cssys/index.js (lines 54-86),
-    // extracted and adapted to accept injected models.
-    handler = async function loginHandler(req, res, next) {
-      try {
-        var user = await mockModels.User.findOne({
-          where: {
-            ids: req.body.ids,
-            password: sha256Fn(req.body.password),
-          },
-        });
-        if (user !== null) {
-          req.session.user = user;
-          user.time = new Date();
-          user.ip = req.session.ip;
-          user = await user.save();
-          req.session.user.time = user.time;
-          req.session.user.ip = user.ip;
-          delete req.body.password;
-          req.body.success = true;
-          await user.createUserLog(req.body);
-          res.send({
-            result: true,
-            type: user.type,
+    // The POST login handler from routes/cssys/index.js,
+    // extracted and adapted to accept injected models and allowed user types.
+    handler = function createLoginHandler(allowedTypes) {
+      return async function loginHandler(req, res, next) {
+        try {
+          var user = await mockModels.User.findOne({
+            where: {
+              ids: req.body.ids,
+              password: sha256Fn(req.body.password),
+            },
           });
-        } else {
-          req.body.success = false;
-          await mockModels.UserLog.create(req.body);
-          res.send({
-            result: false,
-          });
+          if (user !== null && allowedTypes.indexOf(user.type) !== -1) {
+            req.session.user = user;
+            user.time = new Date();
+            user.ip = req.session.ip;
+            user = await user.save();
+            req.session.user.time = user.time;
+            req.session.user.ip = user.ip;
+            delete req.body.password;
+            req.body.success = true;
+            await user.createUserLog(req.body);
+            res.send({
+              result: true,
+              type: user.type,
+            });
+          } else {
+            req.body.success = false;
+            delete req.body.password;
+            await mockModels.UserLog.create(req.body);
+            res.send({
+              result: false,
+            });
+          }
+        } catch (err) {
+          next(err);
         }
-      } catch (err) {
-        next(err);
-      }
+      };
     };
   });
 
@@ -120,7 +123,62 @@ describe('POST /cssys/login handler', () => {
     return res;
   }
 
-  test('returns { result: true, type } on correct credentials', async () => {
+  test('general login returns { result: true, type } for professor/student/schedule user credentials', async () => {
+    const fakeUser = {
+      id: 1,
+      ids: 'student01',
+      type: 2,
+      name: 'Student',
+      time: null,
+      ip: null,
+      save: jest.fn().mockImplementation(function () {
+        return Promise.resolve(this);
+      }),
+      createUserLog: jest.fn().mockResolvedValue({}),
+    };
+
+    mockModels.User.findOne.mockResolvedValue(fakeUser);
+
+    const req = makeMockReq({ ids: 'student01', password: 'pass123' });
+    const res = makeMockRes();
+    const next = jest.fn();
+
+    await handler([1, 2, 3])(req, res, next);
+
+    expect(mockModels.User.findOne).toHaveBeenCalledWith({
+      where: {
+        ids: 'student01',
+        password: sha256Fn('pass123'),
+      },
+    });
+    expect(res.send).toHaveBeenCalledWith({ result: true, type: 2 });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  test('general login rejects admin credentials even when password is correct', async () => {
+    const fakeUser = {
+      id: 1,
+      ids: 'admin',
+      type: 0,
+      name: 'Admin',
+      save: jest.fn(),
+      createUserLog: jest.fn(),
+    };
+    mockModels.User.findOne.mockResolvedValue(fakeUser);
+
+    const req = makeMockReq({ ids: 'admin', password: 'pass123' });
+    const res = makeMockRes();
+    const next = jest.fn();
+
+    await handler([1, 2, 3])(req, res, next);
+
+    expect(res.send).toHaveBeenCalledWith({ result: false });
+    expect(req.session.user).toBeUndefined();
+    expect(fakeUser.save).not.toHaveBeenCalled();
+    expect(mockModels.UserLog.create).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+  });
+
+  test('master_oden login accepts admin credentials', async () => {
     const fakeUser = {
       id: 1,
       ids: 'admin',
@@ -133,23 +191,39 @@ describe('POST /cssys/login handler', () => {
       }),
       createUserLog: jest.fn().mockResolvedValue({}),
     };
-
     mockModels.User.findOne.mockResolvedValue(fakeUser);
 
     const req = makeMockReq({ ids: 'admin', password: 'pass123' });
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([0])(req, res, next);
 
-    expect(mockModels.User.findOne).toHaveBeenCalledWith({
-      where: {
-        ids: 'admin',
-        password: sha256Fn('pass123'),
-      },
-    });
     expect(res.send).toHaveBeenCalledWith({ result: true, type: 0 });
-    expect(next).not.toHaveBeenCalled();
+    expect(req.session.user).toBe(fakeUser);
+    expect(fakeUser.createUserLog).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+  });
+
+  test('master_oden login rejects professor/student credentials', async () => {
+    const fakeUser = {
+      id: 2,
+      ids: 'prof01',
+      type: 1,
+      name: 'Professor',
+      save: jest.fn(),
+      createUserLog: jest.fn(),
+    };
+    mockModels.User.findOne.mockResolvedValue(fakeUser);
+
+    const req = makeMockReq({ ids: 'prof01', password: 'pass123' });
+    const res = makeMockRes();
+    const next = jest.fn();
+
+    await handler([0])(req, res, next);
+
+    expect(res.send).toHaveBeenCalledWith({ result: false });
+    expect(req.session.user).toBeUndefined();
+    expect(fakeUser.save).not.toHaveBeenCalled();
   });
 
   test('sets session.user on successful login', async () => {
@@ -174,7 +248,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([1, 2, 3])(req, res, next);
 
     expect(req.session.user).toBe(fakeUser);
     expect(req.session.user.time).toBeInstanceOf(Date);
@@ -189,7 +263,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([1, 2, 3])(req, res, next);
 
     expect(res.send).toHaveBeenCalledWith({ result: false });
     expect(mockModels.UserLog.create).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
@@ -203,7 +277,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([1, 2, 3])(req, res, next);
 
     expect(res.send).toHaveBeenCalledWith({ result: false });
     expect(mockModels.UserLog.create).toHaveBeenCalled();
@@ -217,7 +291,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([1, 2, 3])(req, res, next);
 
     expect(next).toHaveBeenCalledWith(dbError);
     expect(res.send).not.toHaveBeenCalled();
@@ -241,7 +315,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([0])(req, res, next);
 
     expect(req.body.password).toBeUndefined();
   });
@@ -264,7 +338,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([0])(req, res, next);
 
     expect(fakeUser.createUserLog).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
@@ -276,7 +350,7 @@ describe('POST /cssys/login handler', () => {
     const res = makeMockRes();
     const next = jest.fn();
 
-    await handler(req, res, next);
+    await handler([1, 2, 3])(req, res, next);
 
     expect(mockModels.UserLog.create).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
   });

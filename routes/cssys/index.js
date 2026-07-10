@@ -17,6 +17,89 @@ function sha256(input) {
   return crypto.createHash('sha256').update(String(input)).digest('hex');
 }
 
+var loginTypes = {
+  admin: [0],
+  user: [1, 2, 3],
+};
+
+var rolePathByType = ['admin', 'prof', 'student', 'user'];
+
+function getSystemRolePath(user, system) {
+  if ((system === 'work' || system === 'guidance') && user.type >= 0 && user.type <= 2) {
+    return `/cssys/${system}/${rolePathByType[user.type]}/main`;
+  }
+  if (system === 'schedule' && (user.type === 0 || user.type === 3)) {
+    return `/cssys/${system}/${rolePathByType[user.type]}/main`;
+  }
+  return null;
+}
+
+function getLoginRedirectPath(user, system) {
+  if (!user) return '/cssys/login';
+  var systemRolePath = getSystemRolePath(user, system);
+  if (systemRolePath) return systemRolePath;
+  if (user.type === 0) return '/cssys/work/admin/main';
+  if (user.type === 1) return '/cssys/work/prof/main';
+  if (user.type === 2) return '/cssys/work/student/main';
+  if (user.type === 3) return '/cssys/schedule/user/main';
+  return '/cssys/logout';
+}
+
+function renderLogin(req, res, options) {
+  res.render('cssys/login', {
+    ip: req.session.ip,
+    time: moment().format('YYYY-MM-DD HH:mm:ss'),
+    loginTitle: options.loginTitle,
+    loginPostUrl: options.loginPostUrl,
+    loginFailureMessage: options.loginFailureMessage,
+  });
+}
+
+function isAdminPath(path) {
+  return (
+    path.indexOf('/work/admin') === 0 ||
+    path.indexOf('/guidance/admin') === 0 ||
+    path.indexOf('/schedule/admin') === 0
+  );
+}
+
+async function loginWithAllowedTypes(req, res, next, allowedTypes) {
+  try {
+    var user = await models.User.findOne({
+      // 유저 검색
+      where: {
+        ids: req.body.ids,
+        password: sha256(req.body.password),
+      },
+    });
+    if (user !== null && allowedTypes.indexOf(user.type) !== -1) {
+      req.session.user = user;
+      user.time = new Date();
+      user.ip = req.session.ip;
+      user = await user.save();
+      req.session.user.time = user.time; // 세션 추가 등록
+      req.session.user.ip = user.ip;
+      delete req.body.password;
+      req.body.success = true;
+      await user.createUserLog(req.body);
+      res.send({
+        // 로그인 결과 response
+        result: true,
+        type: user.type,
+      });
+    } else {
+      req.body.success = false;
+      delete req.body.password;
+      await models.UserLog.create(req.body);
+      res.send({
+        result: false,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+}
+
 router.all('*', function (req, res, next) {
   // https 리다이렉션 처리 및 세션에 ip 등록 (apache proxypass & x-forwarded-for 보안 문제로 req.ip 사용할수 없으므로)
   // if (!req.session.ip) req.session.ip = (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',').slice(-1)[0].trim() : req.ip);
@@ -43,53 +126,33 @@ router.get('/', function (req, res, next) {
 // 로그인 페이지 라우팅
 router.get('/login', function (req, res, next) {
   if (!!req.session.user) {
-    if (req.session.system) {
-      res.redirect(`/cssys/${req.session.system}/${['admin', 'prof', 'student'][req.session.user.type]}/main`);
-    } else {
-      res.redirect('/cssys/logout');
-    }
+    res.redirect(getLoginRedirectPath(req.session.user, req.session.system));
   } else {
-    res.render('cssys/login', {
-      ip: req.session.ip,
-      time: moment().format('YYYY-MM-DD HH:mm:ss'),
+    renderLogin(req, res, {
+      loginPostUrl: '/cssys/login',
+      loginFailureMessage: '입력하신 아이디 혹은 패스워드가 잘못되었습니다. 다시 로그인해주세요.',
     });
   }
 });
 
 router.post('/login', async function (req, res, next) {
-  try {
-    var user = await models.User.findOne({
-      // 유저 검색
-      where: {
-        ids: req.body.ids,
-        password: sha256(req.body.password),
-      },
+  await loginWithAllowedTypes(req, res, next, loginTypes.user);
+});
+
+router.get('/master_oden', function (req, res, next) {
+  if (!!req.session.user) {
+    res.redirect(getLoginRedirectPath(req.session.user, req.session.system));
+  } else {
+    renderLogin(req, res, {
+      loginTitle: '관리자 로그인',
+      loginPostUrl: '/cssys/master_oden',
+      loginFailureMessage: '입력하신 아이디 혹은 비밀번호가 잘못되었거나 관리자 계정이 아닙니다.',
     });
-    if (user !== null) {
-      req.session.user = user;
-      user.time = new Date();
-      user.ip = req.session.ip;
-      user = await user.save();
-      req.session.user.time = user.time; // 세션 추가 등록
-      req.session.user.ip = user.ip;
-      delete req.body.password;
-      req.body.success = true;
-      await user.createUserLog(req.body);
-      res.send({
-        // 로그인 결과 response
-        result: true,
-        type: user.type,
-      });
-    } else {
-      req.body.success = false;
-      await models.UserLog.create(req.body);
-      res.send({
-        result: false,
-      });
-    }
-  } catch (err) {
-    next(err);
   }
+});
+
+router.post('/master_oden', async function (req, res, next) {
+  await loginWithAllowedTypes(req, res, next, loginTypes.admin);
 });
 
 // 로그인 인증 예외 처리
@@ -97,6 +160,7 @@ router.all('*', function (req, res, next) {
   // 이미지 캡쳐 팬텀 예외처리
   if (req.path.indexOf('/schedule/user/phantom/') > -1) next();
   else if (req.session.user) next();
+  else if (isAdminPath(req.path)) res.redirect('/cssys/master_oden');
   else res.redirect('/cssys/login');
 });
 
