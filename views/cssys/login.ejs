@@ -1,5 +1,8 @@
 <%- include('../partials/head') %>
 <% var page = "login"; %>
+<% var loginTitle_ = typeof loginTitle !== 'undefined' ? loginTitle : ''; %>
+<% var loginPostUrl_ = typeof loginPostUrl !== 'undefined' ? loginPostUrl : '/cssys/login'; %>
+<% var loginFailureMessage_ = typeof loginFailureMessage !== 'undefined' ? loginFailureMessage : '입력하신 아이디 혹은 패스워드가 잘못되었습니다. 다시 로그인해주세요.'; %>
 <script>$('body').addClass('login-page');</script>
 <style>
 .login-footer {
@@ -16,6 +19,9 @@
           <a class="logo" href="https://cssys.cs.skku.ac.kr/cssys">
             <img src="/cssys/assets/img/logo/logo_login.png" alt="SKKU ICC cssys">
           </a>
+          <% if (loginTitle_) { %>
+            <h4 style="margin-top: 20px; color: #fff;"><%= loginTitle_ %></h4>
+          <% } %>
         </div>
         <div class="form-group">
           <label class="control-label" for="username" style="text-align:left;">아이디</label>
@@ -117,7 +123,7 @@ jQuery(document).ready(function($) {
             };
 
             $.ajax({
-                url: "login",
+                url: <%- JSON.stringify(loginPostUrl_) %>,
                 method: 'POST',
                 dataType: 'json',
                 data: {
@@ -136,7 +142,7 @@ jQuery(document).ready(function($) {
                                     //window.location.href = '/cssys/work';
                                 }
                             } else {
-                                toastr.error("입력하신 아이디 혹은 패스워드가 잘못되었습니다. 다시 로그인해주세요.", "로그인 실패!", opts);
+                                toastr.error(<%- JSON.stringify(loginFailureMessage_) %>, "로그인 실패!", opts);
                                 $(form).find('#password').select();
                             }
                         }
